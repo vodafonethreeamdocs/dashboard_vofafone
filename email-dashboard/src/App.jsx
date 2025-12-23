@@ -99,7 +99,7 @@ const darkTheme = createTheme({
 function App() {
   const [formData, setFormData] = useState({
     name: 'Test Sender',
-    email: 'test@external-company.com',
+    email: 'ds56dfddrt@gmail.com',
     cc: '',
     subject: 'Test Email from Dashboard',
     message: '',
@@ -147,7 +147,7 @@ function App() {
           message: 'Email sent successfully via EmailJS!',
           severity: 'success',
         });
-        setFormData({ name: 'Test Sender', email: 'test@external-company.com', cc: '', subject: 'Test Email from Dashboard', message: '' });
+        setFormData({ name: 'Test Sender', email: 'ds56dfddrt@gmail.com', cc: '', subject: 'Test Email from Dashboard', message: '' });
       } else {
         throw new Error('Failed to send email');
       }
