@@ -101,7 +101,7 @@ function App() {
   const [formData, setFormData] = useState({
     name: 'Vodafone_Dashboard',
     email: 'ds56dfddrt@gmail.com',
-    cc: 'rafi.diamant@amdocs.com,amdtestb2cuk@gmail.com,autotrigger@incetuk002.corp.amdocs.com,shivam.sinha@amdocs.com',
+    cc: 'rafi.diamant@amdocs.com,amdtestb2cuk@gmail.com,autotrigger@incetuk002.corp.amdocs.com,shivam.sinha@amdocs.com,ds56dfddrt@gmail.com',
     subject: 'SITE | UAT4 | NEW_B2B_POSTPAID_SIMO',
     message: '',
   });
@@ -145,7 +145,7 @@ function App() {
           message: 'Email sent successfully via EmailJS!',
           severity: 'success',
         });
-        setFormData({ name: 'Vodafone_Dashboard', email: 'ds56dfddrt@gmail.com', cc: 'rafi.diamant@amdocs.com,amdtestb2cuk@gmail.com,autotrigger@incetuk002.corp.amdocs.com,shivam.sinha@amdocs.com', subject: 'SITE | UAT4 | NEW_B2B_POSTPAID_SIMO', message: '' });
+        setFormData({ name: 'Vodafone_Dashboard', email: 'ds56dfddrt@gmail.com', cc: 'rafi.diamant@amdocs.com,amdtestb2cuk@gmail.com,autotrigger@incetuk002.corp.amdocs.com,shivam.sinha@amdocs.com,ds56dfddrt@gmail.com', subject: 'SITE | UAT4 | NEW_B2B_POSTPAID_SIMO', message: '' });
       } else {
         throw new Error('EmailJS returned non-200 status');
       }
