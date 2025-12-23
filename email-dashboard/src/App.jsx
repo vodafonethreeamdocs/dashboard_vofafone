@@ -136,13 +136,37 @@ function App() {
       console.log('Service:', EMAILJS_SERVICE_ID);
       console.log('Template:', EMAILJS_TEMPLATE_ID);
 
-      // Use EmailJS library method (don't use custom fetch)
-      const response = await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        templateParams,
-        EMAILJS_PUBLIC_KEY
-      );
+      // Use XMLHttpRequest instead of fetch (might bypass SSL issues)
+      const response = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://api.emailjs.com/api/v1.0/email/send', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onload = function() {
+          console.log('XHR Status:', xhr.status);
+          console.log('XHR Response:', xhr.responseText);
+          if (xhr.status === 200) {
+            resolve({ status: 200, text: xhr.responseText });
+          } else {
+            reject(new Error(`EmailJS Error: ${xhr.status} - ${xhr.responseText}`));
+          }
+        };
+        
+        xhr.onerror = function() {
+          console.log('XHR Error:', xhr.status, xhr.statusText);
+          reject(new Error(`Network Error: ${xhr.statusText || 'Failed to connect'}`));
+        };
+        
+        const data = JSON.stringify({
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEMPLATE_ID,
+          user_id: EMAILJS_PUBLIC_KEY,
+          template_params: templateParams,
+        });
+        
+        console.log('Sending data:', data);
+        xhr.send(data);
+      });
 
       console.log('Response:', response);
 
