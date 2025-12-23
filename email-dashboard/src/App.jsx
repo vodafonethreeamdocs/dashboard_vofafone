@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import emailjs from '@emailjs/browser';
 import {
   ThemeProvider,
@@ -97,6 +97,7 @@ const darkTheme = createTheme({
 });
 
 function App() {
+  const formRef = useRef();
   const [formData, setFormData] = useState({
     name: 'Test Sender',
     email: 'ds56dfddrt@gmail.com',
@@ -123,50 +124,18 @@ function App() {
     setLoading(true);
 
     try {
-      // EmailJS template parameters
-      const templateParams = {
-        to_email: RECIPIENT_EMAIL,
-        from_name: formData.name,
-        from_email: formData.email,
-        subject: formData.subject,
-        message: formData.message || '(No message)',
-      };
-
-      console.log('Sending with params:', templateParams);
+      console.log('Using sendForm method...');
       console.log('Service:', EMAILJS_SERVICE_ID);
       console.log('Template:', EMAILJS_TEMPLATE_ID);
+      console.log('Form ref:', formRef.current);
 
-      // Use XMLHttpRequest instead of fetch (might bypass SSL issues)
-      const response = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://api.emailjs.com/api/v1.0/email/send', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        
-        xhr.onload = function() {
-          console.log('XHR Status:', xhr.status);
-          console.log('XHR Response:', xhr.responseText);
-          if (xhr.status === 200) {
-            resolve({ status: 200, text: xhr.responseText });
-          } else {
-            reject(new Error(`EmailJS Error: ${xhr.status} - ${xhr.responseText}`));
-          }
-        };
-        
-        xhr.onerror = function() {
-          console.log('XHR Error:', xhr.status, xhr.statusText);
-          reject(new Error(`Network Error: ${xhr.statusText || 'Failed to connect'}`));
-        };
-        
-        const data = JSON.stringify({
-          service_id: EMAILJS_SERVICE_ID,
-          template_id: EMAILJS_TEMPLATE_ID,
-          user_id: EMAILJS_PUBLIC_KEY,
-          template_params: templateParams,
-        });
-        
-        console.log('Sending data:', data);
-        xhr.send(data);
-      });
+      // Use sendForm method - submits the actual form element
+      const response = await emailjs.sendForm(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        formRef.current,
+        EMAILJS_PUBLIC_KEY
+      );
 
       console.log('Response:', response);
 
@@ -315,7 +284,14 @@ function App() {
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             }}
           >
-            <form onSubmit={handleSubmit}>
+            <form ref={formRef} onSubmit={handleSubmit}>
+              {/* Hidden fields for EmailJS template */}
+              <input type="hidden" name="to_email" value={RECIPIENT_EMAIL} />
+              <input type="hidden" name="from_name" value={formData.name} />
+              <input type="hidden" name="from_email" value={formData.email} />
+              <input type="hidden" name="subject" value={formData.subject} />
+              <input type="hidden" name="message" value={formData.message || '(No message)'} />
+              
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {/* Recipient Info */}
                 <Box
