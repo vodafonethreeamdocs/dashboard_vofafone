@@ -404,14 +404,14 @@ function App() {
                     </Select>
                   </FormControl>
 
-                  {/* Subject Type Dropdown */}
+                  {/* Business Flow Dropdown */}
                   <FormControl fullWidth required>
-                    <InputLabel>Subject Type</InputLabel>
+                    <InputLabel>Business Flow</InputLabel>
                     <Select
                       name="subjectType"
                       value={formData.subjectType}
                       onChange={handleChange}
-                      label="Subject Type"
+                      label="Business Flow"
                     >
                       {SUBJECT_OPTIONS.map((option) => (
                         <MenuItem key={option.code} value={option.code}>
@@ -438,23 +438,6 @@ function App() {
                     {generatedSubject}
                   </Typography>
                 </Box>
-
-                {/* Message */}
-                <TextField
-                  fullWidth
-                  label="Message (Optional)"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  multiline
-                  rows={5}
-                  placeholder="Write your test message here..."
-                  InputProps={{
-                    startAdornment: (
-                      <MessageIcon sx={{ mr: 1, color: 'text.secondary', alignSelf: 'flex-start', mt: 1.5 }} />
-                    ),
-                  }}
-                />
 
                 {/* Submit Button */}
                 <Button
