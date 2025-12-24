@@ -282,16 +282,13 @@ function App() {
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Box
               component="img"
-              src="https://www.ispreview.co.uk/wp-content/uploads/2025/06/nggallery_import/Vodafone-and-Three-UK-New-2025-Merged-Mobile.webp"
-              alt="Vodafone Three Logo"
+              src="https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/VodafoneThree_logo_%282025%29.svg/1200px-VodafoneThree_logo_%282025%29.svg.png"
+              alt="VodafoneThree Logo"
               sx={{
-                width: 80,
-                height: 80,
+                width: 200,
+                height: 'auto',
                 objectFit: 'contain',
                 mb: 2,
-                borderRadius: 2,
-                bgcolor: '#000',
-                p: 1,
               }}
             />
             <Typography variant="h4" component="h1" gutterBottom>
