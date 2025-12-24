@@ -143,7 +143,10 @@ function App() {
     const emailSubject = `SITE | ${formData.env} | ${formData.subjectType}`;
 
     try {
-      console.log('Sending email with subject:', emailSubject);
+      console.log('=== EMAIL SUBMISSION DEBUG ===');
+      console.log('formData.env:', formData.env);
+      console.log('formData.subjectType:', formData.subjectType);
+      console.log('Generated subject:', emailSubject);
       console.log('Service:', EMAILJS_SERVICE_ID);
       console.log('Template:', EMAILJS_TEMPLATE_ID);
 
@@ -174,7 +177,8 @@ function App() {
           message: 'Email sent successfully via EmailJS!',
           severity: 'success',
         });
-        setFormData({ name: 'Vodafone_Dashboard', email: 'ds56dfddrt@gmail.com', cc: 'rafi.diamant@amdocs.com,amdtestb2cuk@gmail.com,autotrigger@incetuk002.corp.amdocs.com,shivam.sinha@amdocs.com,ds56dfddrt@gmail.com', env: 'UAT4', subjectType: 'NEW_B2B_POSTPAID_SIMO', message: '' });
+        // Only clear message, keep other selections
+        setFormData(prev => ({ ...prev, message: '' }));
       } else {
         throw new Error('EmailJS returned non-200 status');
       }
