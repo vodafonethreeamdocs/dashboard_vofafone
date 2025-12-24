@@ -139,17 +139,30 @@ function App() {
     e.preventDefault();
     setLoading(true);
 
+    // Generate subject at submission time
+    const emailSubject = `SITE | ${formData.env} | ${formData.subjectType}`;
+
     try {
-      console.log('Using sendForm method...');
+      console.log('Sending email with subject:', emailSubject);
       console.log('Service:', EMAILJS_SERVICE_ID);
       console.log('Template:', EMAILJS_TEMPLATE_ID);
-      console.log('Form ref:', formRef.current);
 
-      // Use sendForm method - submits the actual form element
-      const response = await emailjs.sendForm(
+      // Use emailjs.send with explicit parameters
+      const templateParams = {
+        to_email: RECIPIENT_EMAIL,
+        from_name: formData.name,
+        from_email: formData.email,
+        subject: emailSubject,
+        message: formData.message || '(No message)',
+        cc_email: formData.cc,
+      };
+
+      console.log('Template params:', templateParams);
+
+      const response = await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
-        formRef.current,
+        templateParams,
         EMAILJS_PUBLIC_KEY
       );
 
