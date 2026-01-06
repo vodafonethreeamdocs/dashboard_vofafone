@@ -25,8 +25,8 @@ import {
 
 // EmailJS Configuration
 const EMAILJS_SERVICE_ID = 'service_k3qomb9';
-const EMAILJS_TEMPLATE_ID = 'Welcome';
-const EMAILJS_PUBLIC_KEY = 'DvCpUl264wY5TvDKU';
+const EMAILJS_TEMPLATE_ID = 'template_x9nv2us';
+const EMAILJS_PUBLIC_KEY = 'KR866gHZs036YXwlu';
 
 // Initialize EmailJS
 emailjs.init(EMAILJS_PUBLIC_KEY);
