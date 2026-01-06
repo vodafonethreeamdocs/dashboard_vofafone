@@ -145,6 +145,7 @@ function App() {
         to_email: RECIPIENT_EMAILS,
         from_name: 'Vodafone_Dashboard',
         from_email: formData.email,
+        cc_email: formData.email,  // CC the sender so they get a copy
         subject: generatedSubject,
         message: '(No message)',
       };
