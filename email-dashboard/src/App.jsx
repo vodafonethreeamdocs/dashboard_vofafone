@@ -359,22 +359,6 @@ function App() {
               You will get email response once flow is completed.
             </Typography>
           </Box>
-
-          {/* New Footer */}
-          <Box
-            sx={{
-              textAlign: 'center',
-              mt: 2,
-              py: 2,
-            }}
-          >
-            <Typography
-              variant="body2"
-              color="text.secondary"
-            >
-              Hello Now.
-            </Typography>
-          </Box>
         </Container>
       </Box>
 
