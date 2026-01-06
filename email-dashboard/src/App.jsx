@@ -206,56 +206,13 @@ function App() {
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
           {/* Header with Logo */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
-            {/* Vodafone + Three Logo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, mb: 2 }}>
-              {/* Vodafone Logo - Speech Mark */}
-              <Box
-                sx={{
-                  width: 72,
-                  height: 72,
-                  bgcolor: '#e60000',
-                  borderRadius: 3,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                }}
-              >
-                <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
-                  {/* Vodafone SpeechMark - Circle with apostrophe */}
-                  <circle cx="45" cy="55" r="28" stroke="white" strokeWidth="7" fill="none"/>
-                  <ellipse cx="72" cy="25" rx="12" ry="14" fill="white" transform="rotate(-20 72 25)"/>
-                </svg>
-              </Box>
-              {/* Three Logo - Stylized 3 */}
-              <Box
-                sx={{
-                  width: 72,
-                  height: 72,
-                  bgcolor: '#e60000',
-                  borderRadius: 3,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                }}
-              >
-                <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
-                  {/* Three UK stylized 3 */}
-                  <path 
-                    d="M25 20 C25 20, 55 15, 65 25 C75 35, 65 48, 50 50 C65 52, 80 62, 70 78 C60 94, 25 90, 18 80" 
-                    stroke="white" 
-                    strokeWidth="7" 
-                    fill="none" 
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {/* Top curl */}
-                  <path d="M25 20 C18 12, 10 15, 12 22" stroke="white" strokeWidth="5" fill="none" strokeLinecap="round"/>
-                  {/* Bottom curl */}
-                  <path d="M18 80 C10 88, 15 95, 25 92" stroke="white" strokeWidth="5" fill="none" strokeLinecap="round"/>
-                </svg>
-              </Box>
+            {/* VodafoneThree Logo */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/VodafoneThree_logo_%282025%29.svg/1200px-VodafoneThree_logo_%282025%29.svg.png"
+                alt="VodafoneThree"
+                style={{ height: 72, width: 'auto' }}
+              />
             </Box>
             <Typography 
               variant="h4" 
