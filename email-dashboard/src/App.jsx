@@ -208,38 +208,52 @@ function App() {
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             {/* Vodafone + Three Logo */}
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, mb: 2 }}>
-              {/* Vodafone Logo */}
+              {/* Vodafone Logo - Speech Mark */}
               <Box
                 sx={{
-                  width: 64,
-                  height: 64,
+                  width: 72,
+                  height: 72,
                   bgcolor: '#e60000',
-                  borderRadius: 2,
+                  borderRadius: 3,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                  <circle cx="20" cy="20" r="14" stroke="white" strokeWidth="3" fill="none"/>
-                  <circle cx="26" cy="10" r="4" fill="white"/>
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  {/* Main circle */}
+                  <circle cx="22" cy="26" r="14" stroke="white" strokeWidth="3.5" fill="none"/>
+                  {/* Speech mark / apostrophe */}
+                  <path d="M32 8 C36 8, 38 12, 36 16 C34 20, 30 22, 28 20" stroke="white" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
                 </svg>
               </Box>
-              {/* Three Logo */}
+              {/* Three Logo - Stylized 3 */}
               <Box
                 sx={{
-                  width: 64,
-                  height: 64,
+                  width: 72,
+                  height: 72,
                   bgcolor: '#e60000',
-                  borderRadius: 2,
+                  borderRadius: 3,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Typography sx={{ fontSize: 36, fontWeight: 700, color: 'white', fontFamily: 'Arial' }}>
-                  3
-                </Typography>
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  {/* Stylized 3 with flourishes */}
+                  <path 
+                    d="M14 12 C14 12, 28 10, 32 14 C36 18, 30 24, 24 24 C30 24, 38 28, 34 36 C30 44, 14 42, 10 38" 
+                    stroke="white" 
+                    strokeWidth="3.5" 
+                    fill="none" 
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {/* Top flourish */}
+                  <path d="M14 12 C10 8, 6 10, 8 14" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                  {/* Bottom flourish */}
+                  <path d="M10 38 C6 42, 8 46, 14 44" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                </svg>
               </Box>
             </Box>
             <Typography 
