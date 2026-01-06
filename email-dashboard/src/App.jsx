@@ -359,6 +359,22 @@ function App() {
               You will get email response once flow is completed.
             </Typography>
           </Box>
+
+          {/* Footer */}
+          <Box
+            sx={{
+              textAlign: 'center',
+              mt: 2,
+              py: 2,
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              © VodafoneThree Amdocs Testing Team
+            </Typography>
+          </Box>
         </Container>
       </Box>
 
