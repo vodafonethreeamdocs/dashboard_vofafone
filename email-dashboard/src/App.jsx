@@ -364,7 +364,7 @@ function App() {
           <Box
             sx={{
               textAlign: 'center',
-              mt: 2,
+              mt: 0.5,
               py: 2,
             }}
           >
