@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import emailjs from '@emailjs/browser';
 import {
   ThemeProvider,
@@ -13,15 +13,14 @@ import {
   Alert,
   Snackbar,
   CircularProgress,
-  Chip,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   Send as SendIcon,
   Email as EmailIcon,
-  Person as PersonIcon,
-  Subject as SubjectIcon,
-  Message as MessageIcon,
-  ContentCopy as CcIcon,
 } from '@mui/icons-material';
 
 // EmailJS Configuration
@@ -31,6 +30,20 @@ const EMAILJS_PUBLIC_KEY = 'DvCpUl264wY5TvDKU';
 
 // Initialize EmailJS
 emailjs.init(EMAILJS_PUBLIC_KEY);
+
+// Environment options
+const ENVIRONMENTS = ['UAT4', 'UAT3', 'UAT2', 'UAT1', 'PROD', 'DEV'];
+
+// Business Flow options with their codes
+const BUSINESS_FLOWS = [
+  { label: 'Create B2C Customer with Postpaid SIMO', code: 'NEW_B2C_POSTPAID_SIMO' },
+  { label: 'Create B2C Customer with Prepaid SIMO', code: 'NEW_B2C_PREPAID_SIMO' },
+  { label: 'Create B2B Customer', code: 'NEW_B2B_CUSTOMER' },
+  { label: 'Upgrade Postpaid Plan', code: 'UPGRADE_POSTPAID' },
+  { label: 'Downgrade Postpaid Plan', code: 'DOWNGRADE_POSTPAID' },
+  { label: 'Add New Line', code: 'ADD_NEW_LINE' },
+  { label: 'Cancel Service', code: 'CANCEL_SERVICE' },
+];
 
 // Dark theme with red accent (Vodafone-style)
 const darkTheme = createTheme({
@@ -58,9 +71,6 @@ const darkTheme = createTheme({
     h4: {
       fontWeight: 600,
     },
-    h6: {
-      fontWeight: 500,
-    },
   },
   components: {
     MuiButton: {
@@ -82,6 +92,13 @@ const darkTheme = createTheme({
         },
       },
     },
+    MuiSelect: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+        },
+      },
+    },
     MuiPaper: {
       styleOverrides: {
         root: {
@@ -95,17 +112,20 @@ const darkTheme = createTheme({
 
 function App() {
   const [formData, setFormData] = useState({
-    name: 'Test Sender',
-    email: 'test@external-company.com',
-    cc: '',
-    subject: 'Test Email from Dashboard',
-    message: '',
+    email: '',
+    environment: 'UAT4',
+    businessFlow: BUSINESS_FLOWS[0].code,
   });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Fixed recipient email - change this to your target email
-  const RECIPIENT_EMAIL = 'vodafonethreeamdocs@gmail.com';
+  // Fixed recipient emails
+  const RECIPIENT_EMAILS = 'djain@amdocs.com,rafid@amdocs.com';
+
+  // Generate subject based on selections
+  const generatedSubject = useMemo(() => {
+    return `SITE | ${formData.environment} | ${formData.businessFlow}`;
+  }, [formData.environment, formData.businessFlow]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -122,15 +142,13 @@ function App() {
     try {
       // EmailJS template parameters
       const templateParams = {
-        to_email: RECIPIENT_EMAIL,
-        from_name: formData.name,
+        to_email: RECIPIENT_EMAILS,
+        from_name: 'Vodafone_Dashboard',
         from_email: formData.email,
-        subject: formData.subject,
-        message: formData.message || '(No message)',
-        cc_email: formData.cc || '',
+        subject: generatedSubject,
+        message: '(No message)',
       };
 
-      // Try EmailJS with library method (more reliable)
       const response = await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
@@ -141,10 +159,10 @@ function App() {
       if (response.status === 200) {
         setSnackbar({
           open: true,
-          message: 'Email sent successfully via EmailJS!',
+          message: 'Email sent successfully!',
           severity: 'success',
         });
-        setFormData({ name: 'Test Sender', email: 'test@external-company.com', cc: '', subject: 'Test Email from Dashboard', message: '' });
+        setFormData((prev) => ({ ...prev, email: '' }));
       } else {
         throw new Error('Failed to send email');
       }
@@ -162,62 +180,6 @@ function App() {
 
   const handleCloseSnackbar = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
-  };
-
-  // Debug function to test network connectivity
-  const testConnectivity = async () => {
-    const results = [];
-    
-    // Test 1: Public API (should always work)
-    try {
-      const res1 = await fetch('https://httpbin.org/get');
-      results.push(`✅ httpbin.org: ${res1.status}`);
-    } catch (e) {
-      results.push(`❌ httpbin.org: ${e.message}`);
-    }
-    
-    // Test 2: EmailJS API
-    try {
-      const res2 = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ test: true })
-      });
-      results.push(`✅ api.emailjs.com: ${res2.status}`);
-    } catch (e) {
-      results.push(`❌ api.emailjs.com: ${e.message}`);
-    }
-    
-    // Test 3: FormSubmit
-    try {
-      const res3 = await fetch('https://formsubmit.co/ajax/test@test.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ test: true })
-      });
-      results.push(`✅ formsubmit.co: ${res3.status}`);
-    } catch (e) {
-      results.push(`❌ formsubmit.co: ${e.message}`);
-    }
-    
-    // Test 4: Web3Forms
-    try {
-      const res4 = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_key: 'test' })
-      });
-      results.push(`✅ api.web3forms.com: ${res4.status}`);
-    } catch (e) {
-      results.push(`❌ api.web3forms.com: ${e.message}`);
-    }
-    
-    setSnackbar({
-      open: true,
-      message: results.join(' | '),
-      severity: 'info',
-    });
-    console.log('Connectivity Test Results:', results);
   };
 
   return (
@@ -242,34 +204,55 @@ function App() {
         }}
       >
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
-          {/* Header */}
+          {/* Header with Logo */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                bgcolor: 'primary.main',
-                borderRadius: 3,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 2,
-                boxShadow: '0 8px 32px rgba(230, 0, 0, 0.3)',
+            {/* Vodafone + Three Logo */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, mb: 2 }}>
+              {/* Vodafone Logo */}
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  bgcolor: '#e60000',
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                  <circle cx="20" cy="20" r="14" stroke="white" strokeWidth="3" fill="none"/>
+                  <circle cx="26" cy="10" r="4" fill="white"/>
+                </svg>
+              </Box>
+              {/* Three Logo */}
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  bgcolor: '#e60000',
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Typography sx={{ fontSize: 36, fontWeight: 700, color: 'white', fontFamily: 'Arial' }}>
+                  3
+                </Typography>
+              </Box>
+            </Box>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              sx={{ 
+                fontWeight: 400,
+                fontStyle: 'italic',
+                letterSpacing: 1,
               }}
             >
-              <EmailIcon sx={{ fontSize: 32, color: 'white' }} />
-            </Box>
-            <Typography variant="h4" component="h1" gutterBottom>
-              Email Test Dashboard
+              VodafoneThree Dashboard
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Send test emails from external sources to Amdocs
-            </Typography>
-            <Chip
-              label="EmailJS • Free • No Backend"
-              size="small"
-              sx={{ mt: 1, bgcolor: 'rgba(230, 0, 0, 0.15)', color: 'primary.light' }}
-            />
           </Box>
 
           {/* Main Form Card */}
@@ -293,90 +276,79 @@ function App() {
                   }}
                 >
                   <Typography variant="body2" color="text.secondary">
-                    <strong style={{ color: '#e60000' }}>To:</strong> {RECIPIENT_EMAIL}
+                    <strong style={{ color: '#e60000' }}>To:</strong> {RECIPIENT_EMAILS}
                   </Typography>
                 </Box>
 
-                {/* Name & Email Row */}
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
-                  <TextField
-                    fullWidth
-                    label="Your Name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="John Doe"
-                    InputProps={{
-                      startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                    }}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Your Email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="john@external-company.com"
-                    InputProps={{
-                      startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                    }}
-                  />
-                </Box>
-
-                {/* CC Email */}
+                {/* Your Email ID */}
                 <TextField
                   fullWidth
-                  label="CC (Optional)"
-                  name="cc"
+                  label="Your Email ID"
+                  name="email"
                   type="email"
-                  value={formData.cc}
-                  onChange={handleChange}
-                  placeholder="cc@amdocs.com"
-                  helperText="Add additional recipients (comma-separated for multiple)"
-                  InputProps={{
-                    startAdornment: <CcIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                  }}
-                />
-
-                {/* Subject */}
-                <TextField
-                  fullWidth
-                  label="Subject"
-                  name="subject"
-                  value={formData.subject}
+                  value={formData.email}
                   onChange={handleChange}
                   required
-                  placeholder="Test Email Subject"
+                  placeholder="your.email@domain.com"
                   InputProps={{
-                    startAdornment: <SubjectIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                    startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
                   }}
                 />
 
-                {/* Message */}
-                <TextField
-                  fullWidth
-                  label="Message (Optional)"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  multiline
-                  rows={5}
-                  placeholder="Write your test message here..."
-                  InputProps={{
-                    startAdornment: (
-                      <MessageIcon sx={{ mr: 1, color: 'text.secondary', alignSelf: 'flex-start', mt: 1.5 }} />
-                    ),
+                {/* Environment & Business Flow Row */}
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Environment</InputLabel>
+                    <Select
+                      name="environment"
+                      value={formData.environment}
+                      onChange={handleChange}
+                      label="Environment"
+                    >
+                      {ENVIRONMENTS.map((env) => (
+                        <MenuItem key={env} value={env}>{env}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth>
+                    <InputLabel>Business Flow</InputLabel>
+                    <Select
+                      name="businessFlow"
+                      value={formData.businessFlow}
+                      onChange={handleChange}
+                      label="Business Flow"
+                    >
+                      {BUSINESS_FLOWS.map((flow) => (
+                        <MenuItem key={flow.code} value={flow.code}>{flow.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                {/* Generated Subject Preview */}
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: 'rgba(230, 0, 0, 0.08)',
+                    borderRadius: 2,
+                    border: '1px solid rgba(230, 0, 0, 0.15)',
                   }}
-                />
+                >
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    Generated Subject:
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#e60000', fontWeight: 500 }}>
+                    {generatedSubject}
+                  </Typography>
+                </Box>
 
                 {/* Submit Button */}
                 <Button
                   type="submit"
                   variant="contained"
                   size="large"
+                  fullWidth
                   disabled={loading}
                   startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
                   sx={{
@@ -390,62 +362,11 @@ function App() {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  {loading ? 'Sending...' : 'Send Test Email'}
-                </Button>
-
-                {/* Mailto fallback button */}
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  fullWidth
-                  startIcon={<EmailIcon />}
-                  onClick={() => {
-                    const mailtoUrl = `mailto:${RECIPIENT_EMAIL}?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`From: ${formData.name} (${formData.email})\n\n${formData.message}`)}${formData.cc ? `&cc=${encodeURIComponent(formData.cc)}` : ''}`;
-                    window.open(mailtoUrl, '_blank');
-                  }}
-                  sx={{
-                    mt: 2,
-                    py: 1.5,
-                    borderColor: 'rgba(255,255,255,0.3)',
-                    '&:hover': {
-                      borderColor: 'rgba(255,255,255,0.6)',
-                      bgcolor: 'rgba(255,255,255,0.05)',
-                    },
-                  }}
-                >
-                  Open in Email Client (Fallback)
-                </Button>
-
-                {/* Debug connectivity button */}
-                <Button
-                  variant="text"
-                  color="secondary"
-                  fullWidth
-                  onClick={testConnectivity}
-                  sx={{
-                    mt: 1,
-                    py: 1,
-                    fontSize: '0.75rem',
-                    opacity: 0.6,
-                    '&:hover': { opacity: 1 },
-                  }}
-                >
-                  🔧 Test Network Connectivity
+                  {loading ? 'Sending...' : 'Send Email'}
                 </Button>
               </Box>
             </form>
-
           </Paper>
-
-          {/* Destination Info */}
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Typography variant="body2" color="text.secondary">
-              All emails are sent to: <strong style={{ color: '#e60000' }}>{RECIPIENT_EMAIL}</strong>
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-              Use the CC field to add additional recipients
-            </Typography>
-          </Box>
         </Container>
       </Box>
 
