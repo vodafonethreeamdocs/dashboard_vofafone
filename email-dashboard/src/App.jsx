@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import emailjs from '@emailjs/browser';
 import {
   ThemeProvider,
@@ -17,10 +17,6 @@ import {
   Divider,
   CircularProgress,
   Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -32,20 +28,12 @@ import {
 } from '@mui/icons-material';
 
 // EmailJS Configuration
-const EMAILJS_SERVICE_ID = 'service_szxtldd';
-const EMAILJS_TEMPLATE_ID = 'template_0sgk7an';
+const EMAILJS_SERVICE_ID = 'service_k3qomb9';
+const EMAILJS_TEMPLATE_ID = 'Welcome';
 const EMAILJS_PUBLIC_KEY = 'DvCpUl264wY5TvDKU';
 
 // Initialize EmailJS
 emailjs.init(EMAILJS_PUBLIC_KEY);
-
-// Dropdown Options
-const ENV_OPTIONS = ['UAT1', 'UAT2', 'UAT4', 'UAT7', 'UAT8', 'UAT9', 'UAT10'];
-
-const SUBJECT_OPTIONS = [
-  { label: 'Create B2C Customer with Postpaid SIMO', code: 'NEW_B2C_POSTPAID_SIMO' },
-  { label: 'Create B2B Customer with Postpaid SIMO', code: 'NEW_B2B_POSTPAID_SIMO' },
-];
 
 // Dark theme with red accent (Vodafone-style)
 const darkTheme = createTheme({
@@ -109,23 +97,18 @@ const darkTheme = createTheme({
 });
 
 function App() {
-  const formRef = useRef();
   const [formData, setFormData] = useState({
-    name: 'Vodafone_Dashboard',
-    email: 'ds56dfddrt@gmail.com',
+    name: 'Test Sender',
+    email: 'test@external-company.com',
     cc: '',
-    env: 'UAT4',
-    subjectType: 'NEW_B2B_POSTPAID_SIMO',
+    subject: 'Test Email from Dashboard',
     message: '',
   });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Generate subject from env and subjectType
-  const generatedSubject = `SITE | ${formData.env} | ${formData.subjectType}`;
-
   // Fixed recipient email - change this to your target email
-  const RECIPIENT_EMAIL = 'djain@amdocs.com,rafid@amdocs.com';
+  const RECIPIENT_EMAIL = 'ds56dfddrt@gmail.com';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -139,29 +122,18 @@ function App() {
     e.preventDefault();
     setLoading(true);
 
-    // Generate subject at submission time
-    const emailSubject = `SITE | ${formData.env} | ${formData.subjectType}`;
-
     try {
-      console.log('=== EMAIL SUBMISSION DEBUG ===');
-      console.log('formData.env:', formData.env);
-      console.log('formData.subjectType:', formData.subjectType);
-      console.log('Generated subject:', emailSubject);
-      console.log('Service:', EMAILJS_SERVICE_ID);
-      console.log('Template:', EMAILJS_TEMPLATE_ID);
-
-      // Use emailjs.send with explicit parameters
+      // EmailJS template parameters
       const templateParams = {
         to_email: RECIPIENT_EMAIL,
         from_name: formData.name,
         from_email: formData.email,
-        subject: emailSubject,
+        subject: formData.subject,
         message: formData.message || '(No message)',
-        cc_email: formData.cc,
+        cc_email: formData.cc || '',
       };
 
-      console.log('Template params:', templateParams);
-
+      // Try EmailJS with library method (more reliable)
       const response = await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
@@ -169,26 +141,21 @@ function App() {
         EMAILJS_PUBLIC_KEY
       );
 
-      console.log('Response:', response);
-
       if (response.status === 200) {
         setSnackbar({
           open: true,
           message: 'Email sent successfully via EmailJS!',
           severity: 'success',
         });
-        // Only clear message, keep other selections
-        setFormData(prev => ({ ...prev, message: '' }));
+        setFormData({ name: 'Test Sender', email: 'test@external-company.com', cc: '', subject: 'Test Email from Dashboard', message: '' });
       } else {
-        throw new Error('EmailJS returned non-200 status');
+        throw new Error('Failed to send email');
       }
     } catch (error) {
       console.error('EmailJS Error:', error);
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
       setSnackbar({
         open: true,
-        message: `Error: ${error.message || 'Failed to send email. Check console for details.'}`,
+        message: `Error: ${error.text || 'Failed to send email. Check console for details.'}`,
         severity: 'error',
       });
     } finally {
@@ -281,19 +248,31 @@ function App() {
           {/* Header */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Box
-              component="img"
-              src="https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/VodafoneThree_logo_%282025%29.svg/1200px-VodafoneThree_logo_%282025%29.svg.png"
-              alt="VodafoneThree Logo"
               sx={{
-                width: 200,
-                height: 'auto',
-                objectFit: 'contain',
+                width: 64,
+                height: 64,
+                bgcolor: 'primary.main',
+                borderRadius: 3,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 mb: 2,
+                boxShadow: '0 8px 32px rgba(230, 0, 0, 0.3)',
               }}
-            />
+            >
+              <EmailIcon sx={{ fontSize: 32, color: 'white' }} />
+            </Box>
             <Typography variant="h4" component="h1" gutterBottom>
-              VodafoneThree Dashboard
+              Email Test Dashboard
             </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Send test emails from external sources to Amdocs
+            </Typography>
+            <Chip
+              label="EmailJS • Free • No Backend"
+              size="small"
+              sx={{ mt: 1, bgcolor: 'rgba(230, 0, 0, 0.15)', color: 'primary.light' }}
+            />
           </Box>
 
           {/* Main Form Card */}
@@ -305,15 +284,7 @@ function App() {
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             }}
           >
-            <form ref={formRef} onSubmit={handleSubmit}>
-              {/* Hidden fields for EmailJS template */}
-              <input type="hidden" name="to_email" value={RECIPIENT_EMAIL} />
-              <input type="hidden" name="from_name" value={formData.name} />
-              <input type="hidden" name="from_email" value={formData.email} />
-              <input type="hidden" name="subject" value={generatedSubject} />
-              <input type="hidden" name="message" value={formData.message || '(No message)'} />
-              <input type="hidden" name="cc_email" value={formData.cc} />
-              
+            <form onSubmit={handleSubmit}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {/* Recipient Info */}
                 <Box
@@ -329,73 +300,80 @@ function App() {
                   </Typography>
                 </Box>
 
-                {/* Your Email ID (functions as CC) */}
+                {/* Name & Email Row */}
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
+                  <TextField
+                    fullWidth
+                    label="Your Name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="John Doe"
+                    InputProps={{
+                      startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Your Email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="john@external-company.com"
+                    InputProps={{
+                      startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                    }}
+                  />
+                </Box>
+
+                {/* CC Email */}
                 <TextField
                   fullWidth
-                  label="Your Email ID"
+                  label="CC (Optional)"
                   name="cc"
-                  type="text"
+                  type="email"
                   value={formData.cc}
                   onChange={handleChange}
-                  placeholder="your.email@domain.com"
+                  placeholder="cc@amdocs.com"
+                  helperText="Add additional recipients (comma-separated for multiple)"
                   InputProps={{
-                    startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                    startAdornment: <CcIcon sx={{ mr: 1, color: 'text.secondary' }} />,
                   }}
                 />
 
-                {/* Environment and Subject Dropdowns */}
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  {/* Environment Dropdown */}
-                  <FormControl fullWidth required>
-                    <InputLabel>Environment</InputLabel>
-                    <Select
-                      name="env"
-                      value={formData.env}
-                      onChange={handleChange}
-                      label="Environment"
-                    >
-                      {ENV_OPTIONS.map((env) => (
-                        <MenuItem key={env} value={env}>
-                          {env}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-
-                  {/* Business Flow Dropdown */}
-                  <FormControl fullWidth required>
-                    <InputLabel>Business Flow</InputLabel>
-                    <Select
-                      name="subjectType"
-                      value={formData.subjectType}
-                      onChange={handleChange}
-                      label="Business Flow"
-                    >
-                      {SUBJECT_OPTIONS.map((option) => (
-                        <MenuItem key={option.code} value={option.code}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                {/* Generated Subject Preview */}
-                <Box
-                  sx={{
-                    p: 2,
-                    bgcolor: 'rgba(230, 0, 0, 0.1)',
-                    borderRadius: 2,
-                    border: '1px solid rgba(230, 0, 0, 0.3)',
+                {/* Subject */}
+                <TextField
+                  fullWidth
+                  label="Subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  required
+                  placeholder="Test Email Subject"
+                  InputProps={{
+                    startAdornment: <SubjectIcon sx={{ mr: 1, color: 'text.secondary' }} />,
                   }}
-                >
-                  <Typography variant="caption" color="text.secondary">
-                    Generated Subject:
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'primary.light' }}>
-                    {generatedSubject}
-                  </Typography>
-                </Box>
+                />
+
+                {/* Message */}
+                <TextField
+                  fullWidth
+                  label="Message (Optional)"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  multiline
+                  rows={5}
+                  placeholder="Write your test message here..."
+                  InputProps={{
+                    startAdornment: (
+                      <MessageIcon sx={{ mr: 1, color: 'text.secondary', alignSelf: 'flex-start', mt: 1.5 }} />
+                    ),
+                  }}
+                />
 
                 {/* Submit Button */}
                 <Button
@@ -415,13 +393,81 @@ function App() {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  {loading ? 'Sending...' : 'Send Email'}
+                  {loading ? 'Sending...' : 'Send Test Email'}
                 </Button>
 
+                {/* Mailto fallback button */}
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  fullWidth
+                  startIcon={<EmailIcon />}
+                  onClick={() => {
+                    const mailtoUrl = `mailto:${RECIPIENT_EMAIL}?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`From: ${formData.name} (${formData.email})\n\n${formData.message}`)}${formData.cc ? `&cc=${encodeURIComponent(formData.cc)}` : ''}`;
+                    window.open(mailtoUrl, '_blank');
+                  }}
+                  sx={{
+                    mt: 2,
+                    py: 1.5,
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    '&:hover': {
+                      borderColor: 'rgba(255,255,255,0.6)',
+                      bgcolor: 'rgba(255,255,255,0.05)',
+                    },
+                  }}
+                >
+                  Open in Email Client (Fallback)
+                </Button>
+
+                {/* Debug connectivity button */}
+                <Button
+                  variant="text"
+                  color="secondary"
+                  fullWidth
+                  onClick={testConnectivity}
+                  sx={{
+                    mt: 1,
+                    py: 1,
+                    fontSize: '0.75rem',
+                    opacity: 0.6,
+                    '&:hover': { opacity: 1 },
+                  }}
+                >
+                  🔧 Test Network Connectivity
+                </Button>
               </Box>
             </form>
 
+            <Divider sx={{ my: 3 }} />
+
+            {/* Info Card */}
+            <Card
+              sx={{
+                bgcolor: 'rgba(230, 0, 0, 0.08)',
+                border: '1px solid rgba(230, 0, 0, 0.2)',
+              }}
+            >
+              <CardContent>
+                <Typography variant="subtitle2" color="primary.light" gutterBottom>
+                  📧 First Time Setup
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Emails are sent via EmailJS from your connected Gmail account (ds56dfddrt@gmail.com).
+                  No activation needed - emails are sent directly from your Gmail.
+                </Typography>
+              </CardContent>
+            </Card>
           </Paper>
+
+          {/* Destination Info */}
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              All emails are sent to: <strong style={{ color: '#e60000' }}>{RECIPIENT_EMAIL}</strong>
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+              Use the CC field to add additional recipients
+            </Typography>
+          </Box>
         </Container>
       </Box>
 

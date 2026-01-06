@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://ds56dfddrt-source.github.io/Vodafone_Public/",
+  "homepage": "https://YOUR_GITHUB_USERNAME.github.io/Vodafone_Public/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
