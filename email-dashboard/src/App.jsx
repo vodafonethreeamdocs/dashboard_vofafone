@@ -12,9 +12,6 @@ import {
   Box,
   Alert,
   Snackbar,
-  Card,
-  CardContent,
-  Divider,
   CircularProgress,
   Chip,
 } from '@mui/material';
@@ -438,25 +435,6 @@ function App() {
               </Box>
             </form>
 
-            <Divider sx={{ my: 3 }} />
-
-            {/* Info Card */}
-            <Card
-              sx={{
-                bgcolor: 'rgba(230, 0, 0, 0.08)',
-                border: '1px solid rgba(230, 0, 0, 0.2)',
-              }}
-            >
-              <CardContent>
-                <Typography variant="subtitle2" color="primary.light" gutterBottom>
-                  📧 First Time Setup
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Emails are sent via EmailJS from your connected Gmail account (vodafonethreeamdocs@gmail.com).
-                  No activation needed - emails are sent directly from your Gmail.
-                </Typography>
-              </CardContent>
-            </Card>
           </Paper>
 
           {/* Destination Info */}
