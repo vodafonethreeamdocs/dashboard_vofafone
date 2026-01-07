@@ -288,7 +288,7 @@ function App() {
 
                   <TextField
                     fullWidth
-                    label="Customer ID (Optional)"
+                    label="Customer (Optional)"
                     name="customerId"
                     value={formData.customerId}
                     onChange={handleChange}
