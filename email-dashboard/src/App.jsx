@@ -114,6 +114,7 @@ function App() {
   const [formData, setFormData] = useState({
     email: '',
     environment: 'UAT4',
+    customerId: '',
     businessFlow: BUSINESS_FLOWS[0].code,
   });
   const [loading, setLoading] = useState(false);
@@ -124,8 +125,9 @@ function App() {
 
   // Generate subject based on selections
   const generatedSubject = useMemo(() => {
-    return `SITE | ${formData.environment} | ${formData.businessFlow}`;
-  }, [formData.environment, formData.businessFlow]);
+    const baseSubject = `SITE | ${formData.environment} | ${formData.businessFlow}`;
+    return formData.customerId ? `${baseSubject} | ${formData.customerId}` : baseSubject;
+  }, [formData.environment, formData.businessFlow, formData.customerId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -163,7 +165,7 @@ function App() {
           message: 'Email sent successfully!',
           severity: 'success',
         });
-        setFormData((prev) => ({ ...prev, email: '' }));
+        setFormData((prev) => ({ ...prev, email: '', customerId: '' }));
       } else {
         throw new Error('Failed to send email');
       }
@@ -268,7 +270,7 @@ function App() {
                   }}
                 />
 
-                {/* Environment & Business Flow Row */}
+                {/* Environment & Customer ID Row */}
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
                   <FormControl fullWidth>
                     <InputLabel>Environment</InputLabel>
@@ -284,20 +286,30 @@ function App() {
                     </Select>
                   </FormControl>
 
-                  <FormControl fullWidth>
-                    <InputLabel>Business Flow</InputLabel>
-                    <Select
-                      name="businessFlow"
-                      value={formData.businessFlow}
-                      onChange={handleChange}
-                      label="Business Flow"
-                    >
-                      {BUSINESS_FLOWS.map((flow) => (
-                        <MenuItem key={flow.code} value={flow.code}>{flow.label}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <TextField
+                    fullWidth
+                    label="Customer ID (Optional)"
+                    name="customerId"
+                    value={formData.customerId}
+                    onChange={handleChange}
+                    placeholder="e.g. 564555566"
+                  />
                 </Box>
+
+                {/* Business Flow */}
+                <FormControl fullWidth>
+                  <InputLabel>Business Flow</InputLabel>
+                  <Select
+                    name="businessFlow"
+                    value={formData.businessFlow}
+                    onChange={handleChange}
+                    label="Business Flow"
+                  >
+                    {BUSINESS_FLOWS.map((flow) => (
+                      <MenuItem key={flow.code} value={flow.code}>{flow.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
                 {/* Generated Subject Preview */}
                 <Box
