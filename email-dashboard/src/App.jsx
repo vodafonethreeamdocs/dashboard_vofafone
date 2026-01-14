@@ -141,6 +141,7 @@ function App() {
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
     localStorage.removeItem('mobileNumber');
     localStorage.removeItem('loginTime');
     setIsAuthenticated(false);
@@ -279,7 +280,7 @@ function App() {
             >
               VodafoneThree Dashboard
             </Typography>
-            {localStorage.getItem('mobileNumber') && (
+            {localStorage.getItem('username') && (
               <Typography 
                 variant="body2" 
                 sx={{ 
@@ -287,7 +288,7 @@ function App() {
                   color: 'text.secondary',
                 }}
               >
-                Logged in as: {localStorage.getItem('mobileNumber')}
+                Logged in as: {localStorage.getItem('username')}
               </Typography>
             )}
           </Box>

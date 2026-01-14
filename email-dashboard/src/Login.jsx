@@ -14,10 +14,28 @@ import {
   Phone as PhoneIcon,
   Lock as LockIcon,
   Send as SendIcon,
+  Person as PersonIcon,
+  Visibility,
+  VisibilityOff,
+  Input as InputIcon,
 } from '@mui/icons-material';
 
 // Mock OTP storage (in production, this would be handled by a backend/SMS service)
 let otpStorage = {};
+
+// Mock user credentials (in production, validate against backend/AD/LDAP)
+const validateCredentials = async (username, password) => {
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Mock validation - in production, call your authentication API
+  // For demo purposes, accept any non-empty username/password
+  if (username && password && username.trim() !== '' && password.trim() !== '') {
+    return { valid: true, message: 'Credentials validated successfully' };
+  }
+  
+  return { valid: false, message: 'Invalid username or password' };
+};
 
 // Generate a random 6-digit OTP
 const generateOTP = () => {
@@ -69,9 +87,12 @@ const validateOTP = (mobileNumber, enteredOTP) => {
 };
 
 function Login({ onLoginSuccess }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [mobileNumber, setMobileNumber] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState('mobile'); // 'mobile' or 'otp'
+  const [step, setStep] = useState('credentials'); // 'credentials', 'mobile', or 'otp'
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [resendTimer, setResendTimer] = useState(0);
@@ -88,6 +109,47 @@ function Login({ onLoginSuccess }) {
         return prev - 1;
       });
     }, 1000);
+  };
+
+  const handleCredentialsSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!username.trim() || !password.trim()) {
+      setSnackbar({
+        open: true,
+        message: 'Please enter both username and password',
+        severity: 'error',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await validateCredentials(username, password);
+      if (result.valid) {
+        setStep('mobile');
+        setSnackbar({
+          open: true,
+          message: result.message,
+          severity: 'success',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: result.message,
+          severity: 'error',
+        });
+        setPassword('');
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Failed to validate credentials. Please try again.',
+        severity: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMobileSubmit = async (e) => {
@@ -145,6 +207,7 @@ function Login({ onLoginSuccess }) {
       if (result.valid) {
         // Store authentication in localStorage
         localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('username', username);
         localStorage.setItem('mobileNumber', mobileNumber);
         localStorage.setItem('loginTime', Date.now().toString());
         
@@ -213,6 +276,13 @@ function Login({ onLoginSuccess }) {
     setResendTimer(0);
   };
 
+  const handleBackToCredentials = () => {
+    setStep('credentials');
+    setMobileNumber('');
+    setOtp('');
+    setResendTimer(0);
+  };
+
   return (
     <Box
       sx={{
@@ -264,7 +334,11 @@ function Login({ onLoginSuccess }) {
               color: 'text.secondary',
             }}
           >
-            {step === 'mobile' ? 'Enter your mobile number to continue' : 'Enter the OTP sent to your mobile'}
+            {step === 'credentials' 
+              ? 'Enter your credentials to continue' 
+              : step === 'mobile' 
+              ? 'Enter your mobile number to receive OTP' 
+              : 'Enter the OTP sent to your mobile'}
           </Typography>
         </Box>
 
@@ -277,9 +351,83 @@ function Login({ onLoginSuccess }) {
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           }}
         >
-          {step === 'mobile' ? (
+          {step === 'credentials' ? (
+            <form onSubmit={handleCredentialsSubmit}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  placeholder="Enter your username"
+                  InputProps={{
+                    startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                  helperText="Enter your username"
+                />
+
+                <TextField
+                  fullWidth
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Enter your password"
+                  InputProps={{
+                    startAdornment: <LockIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                    endAdornment: (
+                      <Button
+                        onClick={() => setShowPassword(!showPassword)}
+                        sx={{ minWidth: 'auto', p: 1, color: 'text.secondary' }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </Button>
+                    ),
+                  }}
+                  helperText="Enter your password"
+                />
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  disabled={loading || !username || !password}
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <InputIcon />}
+                  sx={{
+                    py: 1.5,
+                    fontSize: '1.1rem',
+                    boxShadow: '0 8px 24px rgba(230, 0, 0, 0.3)',
+                    '&:hover': {
+                      boxShadow: '0 12px 32px rgba(230, 0, 0, 0.4)',
+                      transform: 'translateY(-2px)',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {loading ? 'Validating...' : 'Continue'}
+                </Button>
+              </Box>
+            </form>
+          ) : step === 'mobile' ? (
             <form onSubmit={handleMobileSubmit}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: 'rgba(230, 0, 0, 0.1)',
+                    borderRadius: 2,
+                    border: '1px solid rgba(230, 0, 0, 0.2)',
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Logged in as: <strong style={{ color: '#e60000' }}>{username}</strong>
+                  </Typography>
+                </Box>
+
                 <TextField
                   fullWidth
                   label="Mobile Number"
@@ -294,26 +442,42 @@ function Login({ onLoginSuccess }) {
                   helperText="Enter your mobile number with country code"
                 />
 
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  disabled={loading || !mobileNumber}
-                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
-                  sx={{
-                    py: 1.5,
-                    fontSize: '1.1rem',
-                    boxShadow: '0 8px 24px rgba(230, 0, 0, 0.3)',
-                    '&:hover': {
-                      boxShadow: '0 12px 32px rgba(230, 0, 0, 0.4)',
-                      transform: 'translateY(-2px)',
-                    },
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {loading ? 'Sending OTP...' : 'Send OTP'}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleBackToCredentials}
+                    disabled={loading}
+                    sx={{
+                      borderColor: 'rgba(255, 255, 255, 0.3)',
+                      color: 'text.primary',
+                      '&:hover': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                    }}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    disabled={loading || !mobileNumber}
+                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+                    sx={{
+                      py: 1.5,
+                      fontSize: '1.1rem',
+                      boxShadow: '0 8px 24px rgba(230, 0, 0, 0.3)',
+                      '&:hover': {
+                        boxShadow: '0 12px 32px rgba(230, 0, 0, 0.4)',
+                        transform: 'translateY(-2px)',
+                      },
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {loading ? 'Sending OTP...' : 'Send OTP'}
+                  </Button>
+                </Box>
               </Box>
             </form>
           ) : (
