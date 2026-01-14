@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import emailjs from '@emailjs/browser';
 import {
   ThemeProvider,
@@ -17,11 +17,14 @@ import {
   Select,
   FormControl,
   InputLabel,
+  IconButton,
 } from '@mui/material';
 import {
   Send as SendIcon,
   Email as EmailIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
+import Login from './Login';
 
 // EmailJS Configuration
 const EMAILJS_SERVICE_ID = 'service_k3qomb9';
@@ -112,6 +115,7 @@ const darkTheme = createTheme({
 });
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     environment: 'UAT10',
@@ -120,6 +124,27 @@ function App() {
   });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Check authentication on mount
+  useEffect(() => {
+    const authStatus = localStorage.getItem('isAuthenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  // Handle successful login
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('mobileNumber');
+    localStorage.removeItem('loginTime');
+    setIsAuthenticated(false);
+  };
 
   // Fixed recipient emails
   const RECIPIENT_EMAILS = 'djain@amdocs.com,rafid@amdocs.com';
@@ -186,6 +211,16 @@ function App() {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline />
+        <Login onLoginSuccess={handleLoginSuccess} />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -208,8 +243,23 @@ function App() {
         }}
       >
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
-          {/* Header with Logo */}
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
+          {/* Header with Logo and Logout */}
+          <Box sx={{ textAlign: 'center', mb: 4, position: 'relative' }}>
+            {/* Logout Button */}
+            <Box sx={{ position: 'absolute', top: 0, right: 0 }}>
+              <IconButton
+                onClick={handleLogout}
+                sx={{
+                  color: 'text.secondary',
+                  '&:hover': {
+                    color: '#e60000',
+                  },
+                }}
+                title="Logout"
+              >
+                <LogoutIcon />
+              </IconButton>
+            </Box>
             {/* VodafoneThree Logo */}
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
               <img 
@@ -229,6 +279,17 @@ function App() {
             >
               VodafoneThree Dashboard
             </Typography>
+            {localStorage.getItem('mobileNumber') && (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  mt: 1,
+                  color: 'text.secondary',
+                }}
+              >
+                Logged in as: {localStorage.getItem('mobileNumber')}
+              </Typography>
+            )}
           </Box>
 
           {/* Main Form Card */}
