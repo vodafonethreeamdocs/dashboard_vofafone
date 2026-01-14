@@ -28,9 +28,12 @@ const validateCredentials = async (username, password) => {
   // Simulate API call delay
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  // Mock validation - in production, call your authentication API
-  // For demo purposes, accept any non-empty username/password
-  if (username && password && username.trim() !== '' && password.trim() !== '') {
+  // Hardcoded user credentials
+  const validUsername = 'TestUser';
+  const validPassword = 'Testing@123';
+  
+  // Validate against hardcoded credentials
+  if (username.trim() === validUsername && password === validPassword) {
     return { valid: true, message: 'Credentials validated successfully' };
   }
   
