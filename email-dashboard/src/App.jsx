@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import emailjs from '@emailjs/browser';
 import {
   ThemeProvider,
@@ -133,77 +133,19 @@ function App() {
     }
   }, []);
 
-  // Inactivity timer - logout after 15 minutes of inactivity
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    let inactivityTimer;
-    const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
-
-    const resetTimer = () => {
-      // Clear existing timer
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-      }
-
-      // Set new timer
-      inactivityTimer = setTimeout(() => {
-        // Show notification before logout
-        setSnackbar({
-          open: true,
-          message: 'You have been logged out due to inactivity (15 minutes)',
-          severity: 'warning',
-        });
-
-        // Logout after a short delay
-        setTimeout(() => {
-          handleLogout();
-        }, 1000);
-      }, INACTIVITY_TIMEOUT);
-    };
-
-    // Events that indicate user activity
-    const activityEvents = [
-      'mousedown',
-      'mousemove',
-      'keypress',
-      'scroll',
-      'touchstart',
-      'click',
-    ];
-
-    // Add event listeners
-    activityEvents.forEach((event) => {
-      window.addEventListener(event, resetTimer, true);
-    });
-
-    // Initialize timer
-    resetTimer();
-
-    // Cleanup function
-    return () => {
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-      }
-      activityEvents.forEach((event) => {
-        window.removeEventListener(event, resetTimer, true);
-      });
-    };
-  }, [isAuthenticated, handleLogout]);
-
   // Handle successful login
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
   };
 
   // Handle logout
-  const handleLogout = useCallback(() => {
+  const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
     localStorage.removeItem('mobileNumber');
     localStorage.removeItem('loginTime');
     setIsAuthenticated(false);
-  }, []);
+  };
 
   // Fixed recipient emails
   const RECIPIENT_EMAILS = 'djain@amdocs.com,rafid@amdocs.com';
