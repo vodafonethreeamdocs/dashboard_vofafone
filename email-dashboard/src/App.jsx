@@ -39,14 +39,11 @@ const ENVIRONMENTS = ['UAT10', 'UAT4', 'UAT3', 'UAT2', 'UAT1', 'PROD', 'DEV'];
 
 // Business Flow options with their codes
 const BUSINESS_FLOWS = [
-  { label: 'Churchill_SEAMLESS_Dashboard', code: 'Churchill_Seamless_Migration' },
+  { label: 'Churchill_SEAMLESS_Dashboard_B2C', code: 'Churchill_Seamless_Migration_B2C' },
+  { label: 'Churchill_SEAMLESS_Dashboard_B2B', code: 'Churchill_Seamless_Migration_B2B' },
   { label: 'Create B2C Customer with Postpaid SIMO', code: 'NEW_B2C_POSTPAID_SIMO' },
   { label: 'Create B2C Customer with Prepaid SIMO', code: 'NEW_B2C_PREPAID_SIMO' },
   { label: 'Create B2B Customer', code: 'NEW_B2B_CUSTOMER' },
-  { label: 'Upgrade Postpaid Plan', code: 'UPGRADE_POSTPAID' },
-  { label: 'Downgrade Postpaid Plan', code: 'DOWNGRADE_POSTPAID' },
-  { label: 'Add New Line', code: 'ADD_NEW_LINE' },
-  { label: 'Cancel Service', code: 'CANCEL_SERVICE' },
 ];
 
 // Dark theme with red accent (Vodafone-style)
@@ -153,9 +150,12 @@ function App() {
   // Generate subject based on selections
   const generatedSubject = useMemo(() => {
     // Map business flow code to subject value (keep subject unchanged for Churchill)
-    const subjectFlow = formData.businessFlow === 'Churchill_Seamless_Migration' 
-      ? 'Churchill_SEAMLESS_Dashboard' 
-      : formData.businessFlow;
+    let subjectFlow = formData.businessFlow;
+    if (formData.businessFlow === 'Churchill_Seamless_Migration_B2C') {
+      subjectFlow = 'Churchill_SEAMLESS_Dashboard_B2C';
+    } else if (formData.businessFlow === 'Churchill_Seamless_Migration_B2B') {
+      subjectFlow = 'Churchill_SEAMLESS_Dashboard_B2B';
+    }
     const baseSubject = `SITE | ${formData.environment} | ${subjectFlow}`;
     return formData.customerId ? `${baseSubject} | ${formData.customerId}` : baseSubject;
   }, [formData.environment, formData.businessFlow, formData.customerId]);
