@@ -14,97 +14,76 @@ import {
   Phone as PhoneIcon,
   Lock as LockIcon,
   Send as SendIcon,
-  Person as PersonIcon,
+  Email as EmailIcon,
   Visibility,
   VisibilityOff,
   Input as InputIcon,
 } from '@mui/icons-material';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from './firebase';
 
-// Mock OTP storage (in production, this would be handled by a backend/SMS service)
-let otpStorage = {};
+// Vercel API base URL (will be set to deployed URL in production)
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-// Mock user credentials (in production, validate against backend/AD/LDAP)
-const validateCredentials = async (username, password) => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Hardcoded user credentials
-  const validUsername = 'TestUser';
-  const validPassword = 'Testing@123';
-  
-  // Validate against hardcoded credentials
-  if (username.trim() === validUsername && password === validPassword) {
-    return { valid: true, message: 'Credentials validated successfully' };
+// Send Email OTP via Vercel API (Resend)
+const sendEmailOTP = async (email) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to send OTP');
+    }
+    return data;
+  } catch (error) {
+    console.error('Error sending email OTP:', error);
+    throw error;
   }
-  
-  return { valid: false, message: 'Invalid username or password' };
 };
 
-// Generate a random 6-digit OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
-// Mock function to send OTP (in production, integrate with SMS service like Twilio, AWS SNS, etc.)
-const sendOTP = async (mobileNumber) => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const otp = generateOTP();
-  otpStorage[mobileNumber] = {
-    otp,
-    expiresAt: Date.now() + 5 * 60 * 1000, // OTP expires in 5 minutes
-  };
-  
-  // In production, send SMS here using a service like:
-  // - Twilio
-  // - AWS SNS
-  // - MessageBird
-  // - Your custom SMS gateway
-  
-  console.log(`OTP for ${mobileNumber}: ${otp}`); // Remove in production
-  
-  return { success: true, message: 'OTP sent successfully to your mobile number' };
-};
-
-// Validate OTP
-const validateOTP = (mobileNumber, enteredOTP) => {
-  const stored = otpStorage[mobileNumber];
-  
-  if (!stored) {
-    return { valid: false, message: 'OTP not found. Please request a new OTP.' };
+// Verify Email OTP via Vercel API
+const validateEmailOTP = async (email, otp, otpToken) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp, otpToken }),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error verifying email OTP:', error);
+    return { valid: false, message: 'An error occurred. Please try again.' };
   }
-  
-  if (Date.now() > stored.expiresAt) {
-    delete otpStorage[mobileNumber];
-    return { valid: false, message: 'OTP has expired. Please request a new OTP.' };
-  }
-  
-  if (stored.otp !== enteredOTP) {
-    return { valid: false, message: 'Invalid OTP. Please try again.' };
-  }
-  
-  // OTP is valid, clean up
-  delete otpStorage[mobileNumber];
-  return { valid: true, message: 'OTP verified successfully' };
 };
 
 function Login({ onLoginSuccess }) {
-  const [username, setUsername] = useState('');
+  // Step 1: Credentials
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Step 2: Email OTP
+  const [emailOtp, setEmailOtp] = useState('');
+  const [emailResendTimer, setEmailResendTimer] = useState(0);
+  const [otpToken, setOtpToken] = useState(''); // Token for OTP verification
+  
+  // Step 3: Mobile Number (hardcoded bypass)
   const [mobileNumber, setMobileNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState('credentials'); // 'credentials', 'mobile', or 'otp'
+  
+  // UI State
+  const [step, setStep] = useState('credentials'); // 'credentials', 'emailOtp', 'mobile'
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [resendTimer, setResendTimer] = useState(0);
 
   // Countdown timer for resend OTP
-  const startResendTimer = () => {
-    setResendTimer(60);
+  const startEmailResendTimer = () => {
+    setEmailResendTimer(60);
     const interval = setInterval(() => {
-      setResendTimer((prev) => {
+      setEmailResendTimer((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
           return 0;
@@ -114,13 +93,14 @@ function Login({ onLoginSuccess }) {
     }, 1000);
   };
 
+  // Step 1: Handle Email/Password Submit (Firebase Auth)
   const handleCredentialsSubmit = async (e) => {
     e.preventDefault();
     
-    if (!username.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setSnackbar({
         open: true,
-        message: 'Please enter both username and password',
+        message: 'Please enter both email and password',
         severity: 'error',
       });
       return;
@@ -128,7 +108,66 @@ function Login({ onLoginSuccess }) {
 
     setLoading(true);
     try {
-      const result = await validateCredentials(username, password);
+      // Authenticate with Firebase
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      // Send Email OTP via Vercel/Resend
+      const result = await sendEmailOTP(email);
+      if (result.success) {
+        setOtpToken(result.otpToken); // Store token for verification
+        setStep('emailOtp');
+        startEmailResendTimer();
+        setSnackbar({
+          open: true,
+          message: 'Credentials verified! ' + result.message,
+          severity: 'success',
+        });
+      }
+    } catch (error) {
+      console.error('Login Error:', error);
+      let errorMessage = 'Invalid email or password';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No user found with this email';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email format';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error',
+      });
+      setPassword('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Handle Email OTP Submit
+  const handleEmailOtpSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (emailOtp.length !== 6) {
+      setSnackbar({
+        open: true,
+        message: 'Please enter a 6-digit OTP',
+        severity: 'error',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await validateEmailOTP(email, emailOtp, otpToken);
       if (result.valid) {
         setStep('mobile');
         setSnackbar({
@@ -142,12 +181,12 @@ function Login({ onLoginSuccess }) {
           message: result.message,
           severity: 'error',
         });
-        setPassword('');
+        setEmailOtp('');
       }
     } catch (error) {
       setSnackbar({
         open: true,
-        message: 'Failed to validate credentials. Please try again.',
+        message: 'An error occurred. Please try again.',
         severity: 'error',
       });
     } finally {
@@ -155,6 +194,7 @@ function Login({ onLoginSuccess }) {
     }
   };
 
+  // Step 3: Handle Mobile Submit (Hardcoded bypass - completes login)
   const handleMobileSubmit = async (e) => {
     e.preventDefault();
     
@@ -171,67 +211,29 @@ function Login({ onLoginSuccess }) {
 
     setLoading(true);
     try {
-      const result = await sendOTP(mobileNumber);
-      if (result.success) {
-        setStep('otp');
-        startResendTimer();
-        setSnackbar({
-          open: true,
-          message: result.message,
-          severity: 'success',
-        });
-      }
-    } catch (error) {
+      // Simulate OTP send delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Log OTP to console for testing (hardcoded bypass)
+      const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log(`📱 Mobile OTP for ${mobileNumber}: ${mockOtp}`);
+      
+      // Store authentication in localStorage (hardcoded bypass - complete login)
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('mobileNumber', mobileNumber);
+      localStorage.setItem('loginTime', Date.now().toString());
+      
       setSnackbar({
         open: true,
-        message: 'Failed to send OTP. Please try again.',
-        severity: 'error',
+        message: 'Login successful! Welcome to VodafoneThree Dashboard',
+        severity: 'success',
       });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOTPSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (otp.length !== 6) {
-      setSnackbar({
-        open: true,
-        message: 'Please enter a 6-digit OTP',
-        severity: 'error',
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const result = validateOTP(mobileNumber, otp);
-      if (result.valid) {
-        // Store authentication in localStorage
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('username', username);
-        localStorage.setItem('mobileNumber', mobileNumber);
-        localStorage.setItem('loginTime', Date.now().toString());
-        
-        setSnackbar({
-          open: true,
-          message: result.message,
-          severity: 'success',
-        });
-        
-        // Call success callback after a short delay
-        setTimeout(() => {
-          onLoginSuccess();
-        }, 500);
-      } else {
-        setSnackbar({
-          open: true,
-          message: result.message,
-          severity: 'error',
-        });
-        setOtp('');
-      }
+      
+      // Call success callback after a short delay
+      setTimeout(() => {
+        onLoginSuccess();
+      }, 500);
     } catch (error) {
       setSnackbar({
         open: true,
@@ -243,18 +245,20 @@ function Login({ onLoginSuccess }) {
     }
   };
 
-  const handleResendOTP = async () => {
-    if (resendTimer > 0) return;
+  // Resend Email OTP handler
+  const handleResendEmailOtp = async () => {
+    if (emailResendTimer > 0) return;
     
     setLoading(true);
     try {
-      const result = await sendOTP(mobileNumber);
+      const result = await sendEmailOTP(email);
       if (result.success) {
-        startResendTimer();
-        setOtp('');
+        setOtpToken(result.otpToken); // Update token
+        startEmailResendTimer();
+        setEmailOtp('');
         setSnackbar({
           open: true,
-          message: 'OTP resent successfully',
+          message: 'Email OTP resent successfully',
           severity: 'success',
         });
       }
@@ -273,17 +277,38 @@ function Login({ onLoginSuccess }) {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const handleBackToMobile = () => {
-    setStep('mobile');
-    setOtp('');
-    setResendTimer(0);
-  };
-
+  // Navigation handlers
   const handleBackToCredentials = () => {
     setStep('credentials');
+    setEmailOtp('');
+    setOtpToken('');
+    setEmailResendTimer(0);
+  };
+
+  const handleBackToEmailOtp = () => {
+    setStep('emailOtp');
     setMobileNumber('');
-    setOtp('');
-    setResendTimer(0);
+  };
+
+  // Get step description
+  const getStepDescription = () => {
+    switch (step) {
+      case 'credentials':
+        return 'Enter your credentials to continue';
+      case 'emailOtp':
+        return 'Enter the OTP sent to your email';
+      case 'mobile':
+        return 'Enter your mobile number to receive OTP';
+      default:
+        return '';
+    }
+  };
+
+  // Get step indicator
+  const getStepIndicator = () => {
+    const steps = ['credentials', 'emailOtp', 'mobile'];
+    const currentIndex = steps.indexOf(step);
+    return `Step ${currentIndex + 1} of 3`;
   };
 
   return (
@@ -333,15 +358,21 @@ function Login({ onLoginSuccess }) {
           <Typography 
             variant="body2" 
             sx={{ 
-              mt: 2,
+              mt: 1,
+              color: '#e60000',
+              fontWeight: 500,
+            }}
+          >
+            {getStepIndicator()}
+          </Typography>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              mt: 1,
               color: 'text.secondary',
             }}
           >
-            {step === 'credentials' 
-              ? 'Enter your credentials to continue' 
-              : step === 'mobile' 
-              ? 'Enter your mobile number to receive OTP' 
-              : 'Enter the OTP sent to your mobile'}
+            {getStepDescription()}
           </Typography>
         </Box>
 
@@ -354,21 +385,22 @@ function Login({ onLoginSuccess }) {
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           }}
         >
-          {step === 'credentials' ? (
+          {/* Step 1: Credentials */}
+          {step === 'credentials' && (
             <form onSubmit={handleCredentialsSubmit}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <TextField
                   fullWidth
-                  label="Username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
                   InputProps={{
-                    startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                    startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
                   }}
-                  helperText="Enter your username"
+                  helperText="Enter your registered email address"
                 />
 
                 <TextField
@@ -398,7 +430,7 @@ function Login({ onLoginSuccess }) {
                   variant="contained"
                   size="large"
                   fullWidth
-                  disabled={loading || !username || !password}
+                  disabled={loading || !email || !password}
                   startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <InputIcon />}
                   sx={{
                     py: 1.5,
@@ -415,7 +447,102 @@ function Login({ onLoginSuccess }) {
                 </Button>
               </Box>
             </form>
-          ) : step === 'mobile' ? (
+          )}
+
+          {/* Step 2: Email OTP */}
+          {step === 'emailOtp' && (
+            <form onSubmit={handleEmailOtpSubmit}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: 'rgba(230, 0, 0, 0.1)',
+                    borderRadius: 2,
+                    border: '1px solid rgba(230, 0, 0, 0.2)',
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    OTP sent to: <strong style={{ color: '#e60000' }}>{email}</strong>
+                  </Typography>
+                </Box>
+
+                <TextField
+                  fullWidth
+                  label="Enter Email OTP"
+                  type="text"
+                  value={emailOtp}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setEmailOtp(value);
+                  }}
+                  required
+                  placeholder="000000"
+                  inputProps={{
+                    maxLength: 6,
+                    style: { textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.5rem' },
+                  }}
+                  InputProps={{
+                    startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                  helperText="Check your email for the 6-digit OTP"
+                />
+
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleBackToCredentials}
+                    disabled={loading}
+                    sx={{
+                      borderColor: 'rgba(255, 255, 255, 0.3)',
+                      color: 'text.primary',
+                      '&:hover': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                    }}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    disabled={loading || emailOtp.length !== 6}
+                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <LockIcon />}
+                    sx={{
+                      py: 1.5,
+                      fontSize: '1.1rem',
+                      boxShadow: '0 8px 24px rgba(230, 0, 0, 0.3)',
+                      '&:hover': {
+                        boxShadow: '0 12px 32px rgba(230, 0, 0, 0.4)',
+                        transform: 'translateY(-2px)',
+                      },
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {loading ? 'Verifying...' : 'Verify OTP'}
+                  </Button>
+                </Box>
+
+                <Box sx={{ textAlign: 'center' }}>
+                  <Button
+                    variant="text"
+                    onClick={handleResendEmailOtp}
+                    disabled={emailResendTimer > 0 || loading}
+                    sx={{
+                      color: emailResendTimer > 0 ? 'text.secondary' : '#e60000',
+                      textTransform: 'none',
+                    }}
+                  >
+                    {emailResendTimer > 0 ? `Resend OTP in ${emailResendTimer}s` : 'Resend OTP'}
+                  </Button>
+                </Box>
+              </Box>
+            </form>
+          )}
+
+          {/* Step 3: Mobile Number (Hardcoded bypass) */}
+          {step === 'mobile' && (
             <form onSubmit={handleMobileSubmit}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Box
@@ -427,7 +554,7 @@ function Login({ onLoginSuccess }) {
                   }}
                 >
                   <Typography variant="body2" color="text.secondary">
-                    Logged in as: <strong style={{ color: '#e60000' }}>{username}</strong>
+                    Logged in as: <strong style={{ color: '#e60000' }}>{email}</strong>
                   </Typography>
                 </Box>
 
@@ -449,7 +576,7 @@ function Login({ onLoginSuccess }) {
                   <Button
                     variant="outlined"
                     fullWidth
-                    onClick={handleBackToCredentials}
+                    onClick={handleBackToEmailOtp}
                     disabled={loading}
                     sx={{
                       borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -479,95 +606,6 @@ function Login({ onLoginSuccess }) {
                     }}
                   >
                     {loading ? 'Sending OTP...' : 'Send OTP'}
-                  </Button>
-                </Box>
-              </Box>
-            </form>
-          ) : (
-            <form onSubmit={handleOTPSubmit}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box
-                  sx={{
-                    p: 2,
-                    bgcolor: 'rgba(230, 0, 0, 0.1)',
-                    borderRadius: 2,
-                    border: '1px solid rgba(230, 0, 0, 0.2)',
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    OTP sent to: <strong style={{ color: '#e60000' }}>{mobileNumber}</strong>
-                  </Typography>
-                </Box>
-
-                <TextField
-                  fullWidth
-                  label="Enter OTP"
-                  type="text"
-                  value={otp}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                    setOtp(value);
-                  }}
-                  required
-                  placeholder="000000"
-                  inputProps={{
-                    maxLength: 6,
-                    style: { textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.5rem' },
-                  }}
-                  InputProps={{
-                    startAdornment: <LockIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                  }}
-                  helperText="Enter the 6-digit OTP sent to your mobile number"
-                />
-
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleBackToMobile}
-                    disabled={loading}
-                    sx={{
-                      borderColor: 'rgba(255, 255, 255, 0.3)',
-                      color: 'text.primary',
-                      '&:hover': {
-                        borderColor: 'rgba(255, 255, 255, 0.5)',
-                      },
-                    }}
-                  >
-                    Change Number
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    disabled={loading || otp.length !== 6}
-                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <LockIcon />}
-                    sx={{
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                      boxShadow: '0 8px 24px rgba(230, 0, 0, 0.3)',
-                      '&:hover': {
-                        boxShadow: '0 12px 32px rgba(230, 0, 0, 0.4)',
-                        transform: 'translateY(-2px)',
-                      },
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    {loading ? 'Verifying...' : 'Verify OTP'}
-                  </Button>
-                </Box>
-
-                <Box sx={{ textAlign: 'center' }}>
-                  <Button
-                    variant="text"
-                    onClick={handleResendOTP}
-                    disabled={resendTimer > 0 || loading}
-                    sx={{
-                      color: resendTimer > 0 ? 'text.secondary' : '#e60000',
-                      textTransform: 'none',
-                    }}
-                  >
-                    {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
                   </Button>
                 </Box>
               </Box>
@@ -607,4 +645,3 @@ function Login({ onLoginSuccess }) {
 }
 
 export default Login;
-
