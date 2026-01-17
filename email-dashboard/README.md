@@ -3,7 +3,7 @@
 Email notification dashboard for VodafoneThree testing environments.
 
 ## Live Site
-🔗 https://vodafonethreeamdocs.github.io/dashboard/
+🔗 https://vodafonethreeamdocs.github.io/dashboard_vofafone/
 
 ## Features
 - Send test emails to Amdocs team
