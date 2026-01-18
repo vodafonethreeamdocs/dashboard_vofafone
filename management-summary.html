@@ -205,11 +205,6 @@
       flex-shrink: 0;
     }
 
-    .arrow-down {
-      writing-mode: vertical-lr;
-      transform: rotate(90deg);
-    }
-
     /* Return Flow */
     .return-flow {
       display: flex;
@@ -416,15 +411,6 @@
       font-weight: 600;
     }
 
-    /* Highlight Text */
-    .text-red {
-      color: #e60000;
-    }
-
-    .text-green {
-      color: #00c853;
-    }
-
     /* Summary Stats */
     .stats-row {
       display: flex;
@@ -460,7 +446,7 @@
       margin-top: 4px;
     }
 
-    /* New Architecture Box */
+    /* Architecture Box */
     .arch-box {
       background: linear-gradient(180deg, #1e1e28 0%, #16161c 100%);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -509,6 +495,18 @@
       color: #00c853;
       margin-top: 4px;
     }
+
+    /* Admin Badge */
+    .admin-badge {
+      display: inline-block;
+      background: rgba(255, 152, 0, 0.2);
+      color: #ff9800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -540,8 +538,8 @@
           <div class="stat-label">Cloud Native</div>
         </div>
         <div class="stat-item">
-          <div class="stat-value">24/7</div>
-          <div class="stat-label">Availability</div>
+          <div class="stat-value">Full</div>
+          <div class="stat-label">Audit Trail</div>
         </div>
       </div>
     </div>
@@ -556,7 +554,7 @@
         The <strong style="color: #ffffff;">VodafoneThree Automated Testing Dashboard</strong> is a modern, cloud-native platform that enables any authorised person to trigger automated test flows via a simple, secure web interface. The system leverages email-based communication with <strong style="color: #e60000;">Amdocs Ginger</strong> to execute complex test scenarios and return results automatically.
       </p>
       <p style="color: #909098; font-size: 0.95rem;">
-        This solution eliminates manual test triggering, provides audit trails, and enables non-technical stakeholders to initiate testing workflows without direct system access.
+        This solution eliminates manual test triggering, provides complete audit trails, and enables non-technical stakeholders to initiate testing workflows without direct system access. All user activities are logged for compliance and monitoring.
       </p>
     </section>
 
@@ -611,7 +609,7 @@
 
       <!-- Detailed Architecture -->
       <div class="arch-box">
-        <h4 style="color: #ffffff; margin-bottom: 16px; text-align: center;">📦 Server-Side Architecture (Secure)</h4>
+        <h4 style="color: #ffffff; margin-bottom: 16px; text-align: center;">📦 Complete Architecture Stack</h4>
         <div class="arch-row">
           <div class="arch-item">
             <div class="label">Frontend</div>
@@ -631,8 +629,25 @@
             <div class="cost">200/month Free</div>
           </div>
         </div>
+        <div class="arch-row" style="margin-top: 20px;">
+          <div class="arch-item">
+            <div class="label">Authentication</div>
+            <div class="name">Firebase Auth</div>
+            <div class="cost">Unlimited Free</div>
+          </div>
+          <div class="arch-item">
+            <div class="label">Audit Database</div>
+            <div class="name">Firebase Realtime DB</div>
+            <div class="cost">1GB Free</div>
+          </div>
+          <div class="arch-item">
+            <div class="label">Test Engine</div>
+            <div class="name">Amdocs Ginger</div>
+            <div class="cost">Already Licensed</div>
+          </div>
+        </div>
         <p style="text-align: center; color: #00c853; font-size: 0.85rem; margin-top: 16px;">
-          ✓ API keys hidden on server • ✓ Corporate firewall compatible • ✓ No domain verification needed
+          ✓ API keys hidden on server • ✓ Corporate firewall compatible • ✓ Full audit logging • ✓ No billing required
         </p>
       </div>
 
@@ -641,14 +656,14 @@
           <div class="step-number">1</div>
           <div class="step-content">
             <h4>User Authenticates</h4>
-            <p>User logs into the dashboard with email/password (Firebase) and verifies with Email OTP for 2-layer security.</p>
+            <p>User logs into the dashboard with email/password (Firebase) and verifies with Email OTP for 2-layer security. Login event is logged to audit trail.</p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
             <h4>User Sends Test Request</h4>
-            <p>User selects environment, business flow, and optional customer ID, then clicks "Send Email".</p>
+            <p>User selects environment, business flow, and optional customer ID, then clicks "Send Email". Action is logged with all details.</p>
           </div>
         </div>
         <div class="step">
@@ -679,16 +694,16 @@
       <div class="benefits-grid">
         <div class="benefit-card featured">
           <h4><span class="emoji">🎯</span> 100% Free Tier Architecture</h4>
-          <p>The entire infrastructure runs on free tiers of enterprise-grade cloud services, eliminating all recurring costs while maintaining production-quality performance and reliability.</p>
+          <p>The entire infrastructure runs on free tiers of enterprise-grade cloud services, eliminating all recurring costs while maintaining production-quality performance, security, and full audit capabilities.</p>
         </div>
         
         <div class="benefit-card">
-          <h4><span class="emoji">🔥</span> Firebase Authentication</h4>
-          <p>Google's Firebase provides robust authentication completely free:</p>
+          <h4><span class="emoji">🔥</span> Firebase Platform</h4>
+          <p>Google's Firebase provides authentication and database:</p>
           <ul>
             <li>Unlimited authentications</li>
+            <li>Realtime Database (1GB free)</li>
             <li>Enterprise-grade security</li>
-            <li>Email/Password auth flow</li>
           </ul>
         </div>
         
@@ -708,7 +723,6 @@
           <ul>
             <li>200 emails/month free tier</li>
             <li>No domain verification needed</li>
-            <li>Send to any email address</li>
             <li>Works on corporate networks</li>
           </ul>
         </div>
@@ -745,7 +759,7 @@
             <li>Industry-standard encryption</li>
             <li>Brute force protection</li>
             <li>Session management</li>
-            <li>Audit logging</li>
+            <li>Secure token handling</li>
           </ul>
         </div>
         
@@ -770,12 +784,49 @@
         </div>
         
         <div class="benefit-card">
-          <h4><span class="emoji">📝</span> Audit Trail</h4>
+          <h4><span class="emoji">📊</span> Complete Audit Trail</h4>
           <ul>
-            <li>All requests logged</li>
-            <li>Email delivery tracking</li>
-            <li>User action timestamps</li>
-            <li>Traceability for compliance</li>
+            <li>All logins tracked</li>
+            <li>Every email send logged</li>
+            <li>User + timestamp + details</li>
+            <li>Export to CSV for compliance</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Monitoring & Audit -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="icon">📊</span>
+        Monitoring & Audit
+        <span class="admin-badge">ADMIN ONLY</span>
+      </h2>
+      
+      <div class="benefits-grid">
+        <div class="benefit-card featured">
+          <h4><span class="emoji">📈</span> Admin Stats Dashboard</h4>
+          <p>Administrators have access to a real-time statistics panel showing total logins, emails sent, failed attempts, and per-user activity. This panel is hidden from regular users and only visible to designated admin accounts.</p>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">🔍</span> What's Tracked</h4>
+          <ul>
+            <li>Successful logins</li>
+            <li>Failed login attempts</li>
+            <li>OTP sent/verified events</li>
+            <li>Emails sent with all details</li>
+            <li>User logouts</li>
+          </ul>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">📁</span> Data Storage</h4>
+          <ul>
+            <li>Firebase Realtime Database</li>
+            <li>1GB free storage</li>
+            <li>Real-time sync</li>
+            <li>No billing required</li>
           </ul>
         </div>
       </div>
@@ -793,6 +844,7 @@
         <span class="tech-tag">Material UI</span>
         <span class="tech-tag">Vite</span>
         <span class="tech-tag">Firebase Auth</span>
+        <span class="tech-tag">Firebase Realtime DB</span>
         <span class="tech-tag">Vercel Serverless</span>
         <span class="tech-tag">EmailJS API</span>
         <span class="tech-tag">Amdocs Ginger</span>
@@ -846,12 +898,12 @@
           <p>2-layer authentication with Firebase + server-side Email OTP. API keys never exposed to browser.</p>
         </div>
         <div class="benefit-card">
-          <h4><span class="emoji">⚡</span> Instant Deployment</h4>
-          <p>Serverless architecture enables instant global deployment with zero DevOps overhead.</p>
+          <h4><span class="emoji">📊</span> Full Audit Trail</h4>
+          <p>Every action logged to Firebase Realtime Database. Admin dashboard for monitoring user activity.</p>
         </div>
         <div class="benefit-card">
-          <h4><span class="emoji">📊</span> Full Traceability</h4>
-          <p>Every test request is logged with user, timestamp, and execution results returned via email.</p>
+          <h4><span class="emoji">⚡</span> Instant Deployment</h4>
+          <p>Serverless architecture enables instant global deployment with zero DevOps overhead.</p>
         </div>
         <div class="benefit-card">
           <h4><span class="emoji">🏢</span> Corporate Compatible</h4>
@@ -859,7 +911,7 @@
         </div>
         <div class="benefit-card">
           <h4><span class="emoji">🔗</span> No IT Setup Required</h4>
-          <p>No domain verification or DNS changes needed. Works immediately with any email address.</p>
+          <p>No domain verification, DNS changes, or billing setup needed. Works immediately.</p>
         </div>
       </div>
     </section>
