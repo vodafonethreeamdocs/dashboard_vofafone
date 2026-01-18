@@ -37,15 +37,17 @@ const sendEmailViaEmailJS = async (toEmail, otp) => {
       template_params: {
         to_email: toEmail,
         from_name: 'VodafoneThree Dashboard',
+        from_email: 'noreply@vodafonethree.com',
+        cc_email: '',
         subject: 'VodafoneThree Dashboard - Your OTP Code',
         message: `Your one-time password (OTP) is: ${otp}\n\nThis code expires in 5 minutes.\n\nIf you didn't request this code, please ignore this email.`,
-        otp_code: otp,
       },
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error('EmailJS API response:', errorText);
     throw new Error(`EmailJS error: ${errorText}`);
   }
 
@@ -93,7 +95,11 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Error sending OTP via EmailJS:', error);
-    return res.status(500).json({ success: false, error: 'Failed to send OTP' });
+    console.error('Error sending OTP via EmailJS:', error.message || error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to send OTP',
+      details: error.message || 'Unknown error'
+    });
   }
 }
