@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react';
-import emailjs from '@emailjs/browser';
 import {
   ThemeProvider,
   createTheme,
@@ -26,13 +25,8 @@ import {
 } from '@mui/icons-material';
 import Login from './Login';
 
-// EmailJS Configuration
-const EMAILJS_SERVICE_ID = 'service_k3qomb9';
-const EMAILJS_TEMPLATE_ID = 'template_x9nv2us';
-const EMAILJS_PUBLIC_KEY = 'KR866gHZs036YXwlu';
-
-// Initialize EmailJS
-emailjs.init(EMAILJS_PUBLIC_KEY);
+// API Base URL for Vercel functions
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Environment options
 const ENVIRONMENTS = ['UAT10', 'UAT4', 'UAT3', 'UAT2', 'UAT1', 'PROD', 'DEV'];
@@ -172,24 +166,23 @@ function App() {
     setLoading(true);
 
     try {
-      // EmailJS template parameters
-      const templateParams = {
-        to_email: RECIPIENT_EMAILS,
-        from_name: 'Vodafone_Dashboard',
-        from_email: formData.email,
-        cc_email: formData.email,  // CC the sender so they get a copy
-        subject: generatedSubject,
-        message: '(No message)',
-      };
+      // Send via Vercel API (routes through server to bypass corporate firewall)
+      const response = await fetch(`${API_BASE_URL}/api/send-notification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to_email: RECIPIENT_EMAILS,
+          from_name: 'Vodafone_Dashboard',
+          from_email: formData.email,
+          cc_email: formData.email,  // CC the sender so they get a copy
+          subject: generatedSubject,
+          message: '(No message)',
+        }),
+      });
 
-      const response = await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        templateParams,
-        EMAILJS_PUBLIC_KEY
-      );
+      const data = await response.json();
 
-      if (response.status === 200) {
+      if (data.success) {
         setSnackbar({
           open: true,
           message: 'Email sent successfully!',
@@ -197,13 +190,13 @@ function App() {
         });
         setFormData((prev) => ({ ...prev, email: '', customerId: '' }));
       } else {
-        throw new Error('Failed to send email');
+        throw new Error(data.error || 'Failed to send email');
       }
     } catch (error) {
-      console.error('EmailJS Error:', error);
+      console.error('Send Email Error:', error);
       setSnackbar({
         open: true,
-        message: `Error: ${error.text || 'Failed to send email. Check console for details.'}`,
+        message: `Error: ${error.message || 'Failed to send email. Check console for details.'}`,
         severity: 'error',
       });
     } finally {
