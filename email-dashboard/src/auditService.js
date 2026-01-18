@@ -5,10 +5,6 @@ import { db } from './firebase';
 import { 
   ref, 
   push, 
-  query, 
-  orderByChild, 
-  equalTo, 
-  limitToLast,
   get
 } from 'firebase/database';
 
@@ -65,9 +61,8 @@ export const AUDIT_ACTIONS = {
 export const getAllAuditLogs = async (limitCount = 100) => {
   try {
     const auditRef = ref(db, AUDIT_PATH);
-    const logsQuery = query(auditRef, orderByChild('timestamp'), limitToLast(limitCount));
-    
-    const snapshot = await get(logsQuery);
+    // Simple get without orderByChild to avoid needing index
+    const snapshot = await get(auditRef);
     const logs = [];
     
     if (snapshot.exists()) {
@@ -79,8 +74,10 @@ export const getAllAuditLogs = async (limitCount = 100) => {
       });
     }
     
-    // Sort by timestamp descending (most recent first)
-    return logs.sort((a, b) => b.timestamp - a.timestamp);
+    // Sort by timestamp descending (most recent first) and limit
+    return logs
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+      .slice(0, limitCount);
   } catch (error) {
     console.error('Error fetching all audit logs:', error);
     return [];
@@ -96,23 +93,25 @@ export const getAllAuditLogs = async (limitCount = 100) => {
 export const getAuditLogsByUser = async (userEmail, limitCount = 50) => {
   try {
     const auditRef = ref(db, AUDIT_PATH);
-    const userQuery = query(auditRef, orderByChild('userEmail'), equalTo(userEmail));
-    
-    const snapshot = await get(userQuery);
+    // Simple get and filter in JS to avoid needing index
+    const snapshot = await get(auditRef);
     const logs = [];
     
     if (snapshot.exists()) {
       snapshot.forEach((childSnapshot) => {
-        logs.push({ 
-          id: childSnapshot.key, 
-          ...childSnapshot.val() 
-        });
+        const data = childSnapshot.val();
+        if (data.userEmail === userEmail) {
+          logs.push({ 
+            id: childSnapshot.key, 
+            ...data 
+          });
+        }
       });
     }
     
     // Sort by timestamp descending and limit
     return logs
-      .sort((a, b) => b.timestamp - a.timestamp)
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
       .slice(0, limitCount);
   } catch (error) {
     console.error('Error fetching audit logs:', error);
