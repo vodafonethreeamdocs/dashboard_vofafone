@@ -32,6 +32,7 @@ const ADMIN_EMAILS = [
   'rafi.diamant@amdocs.com',
   'deepak.jain2@amdocs.com',
   'rafid@amdocs.com',
+  'djain@amdocs.com',
 ];
 
 // API Base URL for Vercel functions
