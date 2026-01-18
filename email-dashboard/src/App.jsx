@@ -36,7 +36,6 @@ const BUSINESS_FLOWS = [
   { label: 'Churchill_SEAMLESS_Dashboard_B2C', code: 'Churchill_Seamless_Migration_B2C' },
   { label: 'Churchill_SEAMLESS_Dashboard_B2B', code: 'Churchill_Seamless_Migration_B2B' },
   { label: 'Create B2C Customer with Postpaid SIMO', code: 'NEW_B2C_POSTPAID_SIMO' },
-  { label: 'Create B2C Customer with Prepaid SIMO', code: 'NEW_B2C_PREPAID_SIMO' },
   { label: 'Create B2B Customer', code: 'NEW_B2B_CUSTOMER' },
 ];
 
