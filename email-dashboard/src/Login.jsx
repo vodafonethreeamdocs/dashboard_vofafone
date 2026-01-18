@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebase';
+import { logAuditEvent, AUDIT_ACTIONS } from './auditService';
 
 // Vercel API base URL (will be set to deployed URL in production)
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
@@ -113,6 +114,13 @@ function Login({ onLoginSuccess }) {
         setOtpToken(result.otpToken); // Store token for verification
         setStep('emailOtp');
         startEmailResendTimer();
+        
+        // Log OTP sent event
+        logAuditEvent(email, AUDIT_ACTIONS.OTP_SENT, { 
+          step: 'email_otp',
+          success: true 
+        });
+        
         setSnackbar({
           open: true,
           message: 'Credentials verified! ' + result.message,
@@ -121,6 +129,13 @@ function Login({ onLoginSuccess }) {
       }
     } catch (error) {
       console.error('Login Error:', error);
+      
+      // Log failed login attempt
+      logAuditEvent(email, AUDIT_ACTIONS.LOGIN_FAILED, { 
+        errorCode: error.code,
+        errorMessage: error.message 
+      });
+      
       let errorMessage = 'Invalid email or password';
       
       if (error.code === 'auth/user-not-found') {
@@ -170,6 +185,12 @@ function Login({ onLoginSuccess }) {
         localStorage.setItem('userEmail', email);
         localStorage.setItem('loginTime', Date.now().toString());
         
+        // Log successful login
+        logAuditEvent(email, AUDIT_ACTIONS.LOGIN_SUCCESS, { 
+          method: '2-layer-auth',
+          steps: ['firebase', 'email_otp']
+        });
+        
         setSnackbar({
           open: true,
           message: 'Login successful! Welcome to VodafoneThree Dashboard',
@@ -181,6 +202,12 @@ function Login({ onLoginSuccess }) {
           onLoginSuccess();
         }, 500);
       } else {
+        // Log failed OTP verification
+        logAuditEvent(email, AUDIT_ACTIONS.OTP_FAILED, { 
+          step: 'email_otp',
+          message: result.message 
+        });
+        
         setSnackbar({
           open: true,
           message: result.message,

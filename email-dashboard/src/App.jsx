@@ -24,6 +24,8 @@ import {
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import Login from './Login';
+import AuditLogViewer from './AuditLogViewer';
+import { logAuditEvent, AUDIT_ACTIONS } from './auditService';
 
 // API Base URL for Vercel functions
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
@@ -130,6 +132,11 @@ function App() {
 
   // Handle logout
   const handleLogout = () => {
+    const userEmail = localStorage.getItem('userEmail');
+    
+    // Log logout event
+    logAuditEvent(userEmail, AUDIT_ACTIONS.LOGOUT, {});
+    
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('mobileNumber');
@@ -183,6 +190,15 @@ function App() {
       const data = await response.json();
 
       if (data.success) {
+        // Log successful email send
+        logAuditEvent(formData.email, AUDIT_ACTIONS.SEND_EMAIL, {
+          environment: formData.environment,
+          businessFlow: formData.businessFlow,
+          customerId: formData.customerId || null,
+          subject: generatedSubject,
+          recipients: RECIPIENT_EMAILS,
+        });
+        
         setSnackbar({
           open: true,
           message: 'Email sent successfully!',
@@ -194,6 +210,14 @@ function App() {
       }
     } catch (error) {
       console.error('Send Email Error:', error);
+      
+      // Log failed email send
+      logAuditEvent(formData.email, AUDIT_ACTIONS.SEND_EMAIL_FAILED, {
+        environment: formData.environment,
+        businessFlow: formData.businessFlow,
+        error: error.message,
+      });
+      
       setSnackbar({
         open: true,
         message: `Error: ${error.message || 'Failed to send email. Check console for details.'}`,
@@ -445,6 +469,9 @@ function App() {
               You will get email response once flow is triggered/completed.
             </Typography>
           </Box>
+
+          {/* Audit Log Viewer */}
+          <AuditLogViewer />
         </Container>
       </Box>
 
