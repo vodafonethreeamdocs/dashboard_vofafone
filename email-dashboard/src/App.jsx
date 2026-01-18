@@ -24,7 +24,6 @@ import {
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import Login from './Login';
-import AuditLogViewer from './AuditLogViewer';
 import { logAuditEvent, AUDIT_ACTIONS } from './auditService';
 
 // API Base URL for Vercel functions
@@ -469,9 +468,6 @@ function App() {
               You will get email response once flow is triggered/completed.
             </Typography>
           </Box>
-
-          {/* Audit Log Viewer */}
-          <AuditLogViewer />
         </Container>
       </Box>
 
