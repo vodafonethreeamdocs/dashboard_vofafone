@@ -11,13 +11,12 @@ import {
   CircularProgress,
 } from '@mui/material';
 import {
-  Phone as PhoneIcon,
   Lock as LockIcon,
-  Send as SendIcon,
   Email as EmailIcon,
   Visibility,
   VisibilityOff,
   Input as InputIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebase';
@@ -71,11 +70,8 @@ function Login({ onLoginSuccess }) {
   const [emailResendTimer, setEmailResendTimer] = useState(0);
   const [otpToken, setOtpToken] = useState(''); // Token for OTP verification
   
-  // Step 3: Mobile Number (hardcoded bypass)
-  const [mobileNumber, setMobileNumber] = useState('');
-  
   // UI State
-  const [step, setStep] = useState('credentials'); // 'credentials', 'emailOtp', 'mobile'
+  const [step, setStep] = useState('credentials'); // 'credentials', 'emailOtp'
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
@@ -152,7 +148,7 @@ function Login({ onLoginSuccess }) {
     }
   };
 
-  // Step 2: Handle Email OTP Submit
+  // Step 2: Handle Email OTP Submit - Completes Login
   const handleEmailOtpSubmit = async (e) => {
     e.preventDefault();
     
@@ -169,12 +165,21 @@ function Login({ onLoginSuccess }) {
     try {
       const result = await validateEmailOTP(email, emailOtp, otpToken);
       if (result.valid) {
-        setStep('mobile');
+        // Store authentication in localStorage - Complete login
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('loginTime', Date.now().toString());
+        
         setSnackbar({
           open: true,
-          message: result.message,
+          message: 'Login successful! Welcome to VodafoneThree Dashboard',
           severity: 'success',
         });
+        
+        // Call success callback after a short delay
+        setTimeout(() => {
+          onLoginSuccess();
+        }, 500);
       } else {
         setSnackbar({
           open: true,
@@ -183,57 +188,6 @@ function Login({ onLoginSuccess }) {
         });
         setEmailOtp('');
       }
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: 'An error occurred. Please try again.',
-        severity: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 3: Handle Mobile Submit (Hardcoded bypass - completes login)
-  const handleMobileSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validate mobile number format
-    const mobileRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
-    if (!mobileRegex.test(mobileNumber.replace(/\s/g, ''))) {
-      setSnackbar({
-        open: true,
-        message: 'Please enter a valid mobile number',
-        severity: 'error',
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Simulate OTP send delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Log OTP to console for testing (hardcoded bypass)
-      const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log(`📱 Mobile OTP for ${mobileNumber}: ${mockOtp}`);
-      
-      // Store authentication in localStorage (hardcoded bypass - complete login)
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('mobileNumber', mobileNumber);
-      localStorage.setItem('loginTime', Date.now().toString());
-      
-      setSnackbar({
-        open: true,
-        message: 'Login successful! Welcome to VodafoneThree Dashboard',
-        severity: 'success',
-      });
-      
-      // Call success callback after a short delay
-      setTimeout(() => {
-        onLoginSuccess();
-      }, 500);
     } catch (error) {
       setSnackbar({
         open: true,
@@ -285,11 +239,6 @@ function Login({ onLoginSuccess }) {
     setEmailResendTimer(0);
   };
 
-  const handleBackToEmailOtp = () => {
-    setStep('emailOtp');
-    setMobileNumber('');
-  };
-
   // Get step description
   const getStepDescription = () => {
     switch (step) {
@@ -297,8 +246,6 @@ function Login({ onLoginSuccess }) {
         return 'Enter your credentials to continue';
       case 'emailOtp':
         return 'Enter the OTP sent to your email';
-      case 'mobile':
-        return 'Enter your mobile number to receive OTP';
       default:
         return '';
     }
@@ -306,9 +253,9 @@ function Login({ onLoginSuccess }) {
 
   // Get step indicator
   const getStepIndicator = () => {
-    const steps = ['credentials', 'emailOtp', 'mobile'];
+    const steps = ['credentials', 'emailOtp'];
     const currentIndex = steps.indexOf(step);
-    return `Step ${currentIndex + 1} of 3`;
+    return `Step ${currentIndex + 1} of 2`;
   };
 
   return (
@@ -508,7 +455,7 @@ function Login({ onLoginSuccess }) {
                     variant="contained"
                     fullWidth
                     disabled={loading || emailOtp.length !== 6}
-                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <LockIcon />}
+                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}
                     sx={{
                       py: 1.5,
                       fontSize: '1.1rem',
@@ -520,7 +467,7 @@ function Login({ onLoginSuccess }) {
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    {loading ? 'Verifying...' : 'Verify OTP'}
+                    {loading ? 'Verifying...' : 'Verify & Login'}
                   </Button>
                 </Box>
 
@@ -535,77 +482,6 @@ function Login({ onLoginSuccess }) {
                     }}
                   >
                     {emailResendTimer > 0 ? `Resend OTP in ${emailResendTimer}s` : 'Resend OTP'}
-                  </Button>
-                </Box>
-              </Box>
-            </form>
-          )}
-
-          {/* Step 3: Mobile Number (Hardcoded bypass) */}
-          {step === 'mobile' && (
-            <form onSubmit={handleMobileSubmit}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box
-                  sx={{
-                    p: 2,
-                    bgcolor: 'rgba(230, 0, 0, 0.1)',
-                    borderRadius: 2,
-                    border: '1px solid rgba(230, 0, 0, 0.2)',
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Logged in as: <strong style={{ color: '#e60000' }}>{email}</strong>
-                  </Typography>
-                </Box>
-
-                <TextField
-                  fullWidth
-                  label="Mobile Number"
-                  type="tel"
-                  value={mobileNumber}
-                  onChange={(e) => setMobileNumber(e.target.value)}
-                  required
-                  placeholder="+1234567890"
-                  InputProps={{
-                    startAdornment: <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                  }}
-                  helperText="Enter your mobile number with country code"
-                />
-
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleBackToEmailOtp}
-                    disabled={loading}
-                    sx={{
-                      borderColor: 'rgba(255, 255, 255, 0.3)',
-                      color: 'text.primary',
-                      '&:hover': {
-                        borderColor: 'rgba(255, 255, 255, 0.5)',
-                      },
-                    }}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    disabled={loading || !mobileNumber}
-                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
-                    sx={{
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                      boxShadow: '0 8px 24px rgba(230, 0, 0, 0.3)',
-                      '&:hover': {
-                        boxShadow: '0 12px 32px rgba(230, 0, 0, 0.4)',
-                        transform: 'translateY(-2px)',
-                      },
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    {loading ? 'Sending OTP...' : 'Send OTP'}
                   </Button>
                 </Box>
               </Box>
