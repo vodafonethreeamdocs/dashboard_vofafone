@@ -459,6 +459,56 @@
       color: #808090;
       margin-top: 4px;
     }
+
+    /* New Architecture Box */
+    .arch-box {
+      background: linear-gradient(180deg, #1e1e28 0%, #16161c 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 20px 0;
+    }
+
+    .arch-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+
+    .arch-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px 24px;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .arch-item.server {
+      background: linear-gradient(180deg, rgba(230, 0, 0, 0.15) 0%, rgba(230, 0, 0, 0.05) 100%);
+      border-color: rgba(230, 0, 0, 0.3);
+    }
+
+    .arch-item .label {
+      font-size: 0.75rem;
+      color: #808090;
+      margin-bottom: 4px;
+    }
+
+    .arch-item .name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .arch-item .cost {
+      font-size: 0.8rem;
+      color: #00c853;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -529,16 +579,16 @@
           
           <div class="flow-box highlight">
             <span class="icon-large">🖥️</span>
-            <h4>Dashboard</h4>
-            <p>React + Vercel (Free Tier)</p>
+            <h4>Vercel</h4>
+            <p>Dashboard + API Functions</p>
           </div>
           
           <span class="arrow">→</span>
           
           <div class="flow-box">
             <span class="icon-large">📧</span>
-            <h4>Email Service</h4>
-            <p>Resend API (Free Tier)</p>
+            <h4>EmailJS</h4>
+            <p>Email Delivery (Free)</p>
           </div>
           
           <span class="arrow">→</span>
@@ -559,33 +609,60 @@
         </div>
       </div>
 
+      <!-- Detailed Architecture -->
+      <div class="arch-box">
+        <h4 style="color: #ffffff; margin-bottom: 16px; text-align: center;">📦 Server-Side Architecture (Secure)</h4>
+        <div class="arch-row">
+          <div class="arch-item">
+            <div class="label">Frontend</div>
+            <div class="name">React App</div>
+            <div class="cost">Vercel Free</div>
+          </div>
+          <span class="arrow">→</span>
+          <div class="arch-item server">
+            <div class="label">Backend</div>
+            <div class="name">Vercel API</div>
+            <div class="cost">Serverless Functions</div>
+          </div>
+          <span class="arrow">→</span>
+          <div class="arch-item">
+            <div class="label">Email Service</div>
+            <div class="name">EmailJS</div>
+            <div class="cost">200/month Free</div>
+          </div>
+        </div>
+        <p style="text-align: center; color: #00c853; font-size: 0.85rem; margin-top: 16px;">
+          ✓ API keys hidden on server • ✓ Corporate firewall compatible • ✓ No domain verification needed
+        </p>
+      </div>
+
       <div class="process-steps">
         <div class="step">
           <div class="step-number">1</div>
           <div class="step-content">
-            <h4>User Sends Test Request</h4>
-            <p>User logs into the dashboard, selects environment, business flow, and optional customer ID, then clicks "Send Email".</p>
+            <h4>User Authenticates</h4>
+            <p>User logs into the dashboard with email/password (Firebase) and verifies with Email OTP for 2-layer security.</p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <h4>Email Sent to Amdocs Ginger</h4>
-            <p>A structured email with subject line <code style="color: #e60000; background: rgba(230,0,0,0.1); padding: 2px 8px; border-radius: 4px;">SITE | ENV | FLOW | CustomerID</code> is sent to Ginger's monitored inbox.</p>
+            <h4>User Sends Test Request</h4>
+            <p>User selects environment, business flow, and optional customer ID, then clicks "Send Email".</p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">3</div>
           <div class="step-content">
-            <h4>Ginger Executes the Flow</h4>
-            <p>Amdocs Ginger parses the email subject, identifies the test flow, and automatically executes the corresponding test automation script.</p>
+            <h4>Email Routed Through Vercel</h4>
+            <p>Request goes to Vercel serverless function → EmailJS API → Ginger's inbox. Subject format: <code style="color: #e60000; background: rgba(230,0,0,0.1); padding: 2px 8px; border-radius: 4px;">SITE | ENV | FLOW | CustomerID</code></p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">4</div>
           <div class="step-content">
-            <h4>Results Returned via Email</h4>
-            <p>Once execution completes, Ginger sends the test results and logs back to the user's email address for review.</p>
+            <h4>Ginger Executes & Returns Results</h4>
+            <p>Amdocs Ginger parses the email, executes the test automation, and sends results back to the user's email.</p>
           </div>
         </div>
       </div>
@@ -620,17 +697,19 @@
           <p>Serverless deployment platform:</p>
           <ul>
             <li>100GB bandwidth/month free</li>
-            <li>Serverless functions included</li>
+            <li>Serverless API functions</li>
             <li>Global CDN distribution</li>
           </ul>
         </div>
         
         <div class="benefit-card">
-          <h4><span class="emoji">📬</span> Resend Email API</h4>
-          <p>Modern email delivery service:</p>
+          <h4><span class="emoji">📬</span> EmailJS</h4>
+          <p>Simple email delivery service:</p>
           <ul>
-            <li>3,000 emails/month free tier</li>
-            <li>High deliverability rates</li>
+            <li>200 emails/month free tier</li>
+            <li>No domain verification needed</li>
+            <li>Send to any email address</li>
+            <li>Works on corporate networks</li>
           </ul>
         </div>
         
@@ -657,7 +736,7 @@
       <div class="benefits-grid">
         <div class="benefit-card featured">
           <h4><span class="emoji">🛡️</span> Multi-Factor Authentication Flow</h4>
-          <p>Users must complete a 2-step verification process: (1) Email & Password authentication via Firebase, and (2) Email OTP verification sent via Resend. This ensures only authorized personnel can trigger test flows.</p>
+          <p>Users must complete a 2-step verification process: (1) Email & Password authentication via Firebase, and (2) Email OTP verification with 6-digit code. OTP is generated server-side on Vercel for maximum security - codes never exposed to browser.</p>
         </div>
         
         <div class="benefit-card">
@@ -671,12 +750,12 @@
         </div>
         
         <div class="benefit-card">
-          <h4><span class="emoji">📱</span> OTP Verification</h4>
+          <h4><span class="emoji">📱</span> Server-Side OTP</h4>
           <ul>
             <li>6-digit secure codes</li>
-            <li>60-second expiry timer</li>
-            <li>Single-use tokens</li>
-            <li>Rate limiting protection</li>
+            <li>5-minute expiry timer</li>
+            <li>Generated on Vercel server</li>
+            <li>Hash-based verification</li>
           </ul>
         </div>
         
@@ -684,9 +763,9 @@
           <h4><span class="emoji">🌐</span> Network Security</h4>
           <ul>
             <li>HTTPS/TLS encryption</li>
-            <li>CORS protection</li>
-            <li>Serverless isolation</li>
-            <li>No exposed databases</li>
+            <li>API keys hidden on server</li>
+            <li>Corporate firewall compatible</li>
+            <li>No exposed credentials</li>
           </ul>
         </div>
         
@@ -710,15 +789,14 @@
       </h2>
       <p style="color: #909098; margin-bottom: 16px;">Modern, maintainable, and industry-standard technologies:</p>
       <div class="tech-stack">
-        <span class="tech-tag">React 18</span>
+        <span class="tech-tag">React 19</span>
         <span class="tech-tag">Material UI</span>
         <span class="tech-tag">Vite</span>
         <span class="tech-tag">Firebase Auth</span>
         <span class="tech-tag">Vercel Serverless</span>
-        <span class="tech-tag">Resend API</span>
+        <span class="tech-tag">EmailJS API</span>
         <span class="tech-tag">Amdocs Ginger</span>
         <span class="tech-tag">Node.js</span>
-        <span class="tech-tag">HTML5 Email</span>
       </div>
     </section>
 
@@ -761,11 +839,11 @@
       <div class="benefits-grid">
         <div class="benefit-card">
           <h4><span class="emoji">💵</span> Cost Efficiency</h4>
-          <p>Zero infrastructure costs using free tiers of Firebase, Vercel, and Resend. No servers to maintain or scale.</p>
+          <p>Zero infrastructure costs using free tiers of Firebase, Vercel, and EmailJS. No servers to maintain or scale.</p>
         </div>
         <div class="benefit-card">
           <h4><span class="emoji">🔒</span> Enterprise Security</h4>
-          <p>Multi-layer authentication with Firebase + Email OTP ensures only authorized access.</p>
+          <p>2-layer authentication with Firebase + server-side Email OTP. API keys never exposed to browser.</p>
         </div>
         <div class="benefit-card">
           <h4><span class="emoji">⚡</span> Instant Deployment</h4>
@@ -776,12 +854,12 @@
           <p>Every test request is logged with user, timestamp, and execution results returned via email.</p>
         </div>
         <div class="benefit-card">
-          <h4><span class="emoji">🎨</span> Modern UX</h4>
-          <p>Clean, intuitive interface following Vodafone brand guidelines. Mobile-responsive design.</p>
+          <h4><span class="emoji">🏢</span> Corporate Compatible</h4>
+          <p>All emails routed through Vercel server, bypassing corporate firewall restrictions.</p>
         </div>
         <div class="benefit-card">
-          <h4><span class="emoji">🔗</span> Seamless Integration</h4>
-          <p>Leverages existing Amdocs Ginger infrastructure for test execution without additional licensing.</p>
+          <h4><span class="emoji">🔗</span> No IT Setup Required</h4>
+          <p>No domain verification or DNS changes needed. Works immediately with any email address.</p>
         </div>
       </div>
     </section>
@@ -794,4 +872,3 @@
   </div>
 </body>
 </html>
-
