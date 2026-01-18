@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import emailjs from '@emailjs/browser';
 import {
   ThemeProvider,
   createTheme,
@@ -25,8 +26,13 @@ import {
 } from '@mui/icons-material';
 import Login from './Login';
 
-// Vercel API base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+// EmailJS Configuration
+const EMAILJS_SERVICE_ID = 'service_k3qomb9';
+const EMAILJS_TEMPLATE_ID = 'template_x9nv2us';
+const EMAILJS_PUBLIC_KEY = 'KR866gHZs036YXwlu';
+
+// Initialize EmailJS
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
 // Environment options
 const ENVIRONMENTS = ['UAT10', 'UAT4', 'UAT3', 'UAT2', 'UAT1', 'PROD', 'DEV'];
@@ -166,24 +172,24 @@ function App() {
     setLoading(true);
 
     try {
-      // Send notification via Resend API
-      const response = await fetch(`${API_BASE_URL}/api/send-notification`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to_emails: RECIPIENT_EMAILS,
-          cc_email: formData.email,
-          from_email: formData.email,
-          subject: generatedSubject,
-          environment: formData.environment,
-          businessFlow: formData.businessFlow,
-          customerId: formData.customerId,
-        }),
-      });
+      // EmailJS template parameters
+      const templateParams = {
+        to_email: RECIPIENT_EMAILS,
+        from_name: 'Vodafone_Dashboard',
+        from_email: formData.email,
+        cc_email: formData.email,  // CC the sender so they get a copy
+        subject: generatedSubject,
+        message: '(No message)',
+      };
 
-      const data = await response.json();
+      const response = await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams,
+        EMAILJS_PUBLIC_KEY
+      );
 
-      if (data.success) {
+      if (response.status === 200) {
         setSnackbar({
           open: true,
           message: 'Email sent successfully!',
@@ -191,13 +197,13 @@ function App() {
         });
         setFormData((prev) => ({ ...prev, email: '', customerId: '' }));
       } else {
-        throw new Error(data.error || 'Failed to send email');
+        throw new Error('Failed to send email');
       }
     } catch (error) {
-      console.error('Send Email Error:', error);
+      console.error('EmailJS Error:', error);
       setSnackbar({
         open: true,
-        message: `Error: ${error.message || 'Failed to send email. Please try again.'}`,
+        message: `Error: ${error.text || 'Failed to send email. Check console for details.'}`,
         severity: 'error',
       });
     } finally {
