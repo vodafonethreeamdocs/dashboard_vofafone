@@ -66,10 +66,10 @@ function AuditLogViewer() {
     fetchLogs();
   }, []);
 
-  // Format timestamp for display
+  // Format timestamp for display (Realtime Database stores as milliseconds)
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return 'N/A';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const date = new Date(timestamp);
     return date.toLocaleString('en-GB', {
       day: '2-digit',
       month: 'short',

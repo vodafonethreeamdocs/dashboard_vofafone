@@ -1,7 +1,7 @@
 // Firebase configuration for VodafoneThree Dashboard
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getDatabase } from 'firebase/database';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -10,7 +10,8 @@ const firebaseConfig = {
   projectId: "vodafonethree-dashboard",
   storageBucket: "vodafonethree-dashboard.firebasestorage.app",
   messagingSenderId: "1062168254517",
-  appId: "1:1062168254517:web:fcc7e04c15e9199a96397c"
+  appId: "1:1062168254517:web:fcc7e04c15e9199a96397c",
+  databaseURL: "https://vodafonethree-dashboard-default-rtdb.europe-west1.firebasedatabase.app"
 };
 
 // Initialize Firebase
@@ -19,7 +20,7 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Authentication
 export const auth = getAuth(app);
 
-// Initialize Firestore for audit logging
-export const db = getFirestore(app);
+// Initialize Realtime Database for audit logging
+export const db = getDatabase(app);
 
 export default app;
