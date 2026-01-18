@@ -24,7 +24,14 @@ import {
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import Login from './Login';
+import AdminStatsPanel from './AdminStatsPanel';
 import { logAuditEvent, AUDIT_ACTIONS } from './auditService';
+
+// Admin users who can see usage stats
+const ADMIN_EMAILS = [
+  'rafi.diamant@amdocs.com',
+  'deepak.jain2@amdocs.com',
+];
 
 // API Base URL for Vercel functions
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
@@ -123,6 +130,10 @@ function App() {
       setIsAuthenticated(true);
     }
   }, []);
+
+  // Check if current user is admin
+  const currentUserEmail = localStorage.getItem('userEmail') || '';
+  const isAdmin = ADMIN_EMAILS.includes(currentUserEmail.toLowerCase());
 
   // Handle successful login
   const handleLoginSuccess = () => {
@@ -468,6 +479,9 @@ function App() {
               You will get email response once flow is triggered/completed.
             </Typography>
           </Box>
+
+          {/* Admin Stats Panel - Only visible to admins */}
+          {isAdmin && <AdminStatsPanel />}
         </Container>
       </Box>
 
