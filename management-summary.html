@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VodafoneThree Dashboard - Executive Summary</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0a0a0c 0%, #141418 50%, #0a0a0c 100%);
+      color: #f0f0f5;
+      line-height: 1.7;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Header Section */
+    .header {
+      text-align: center;
+      padding: 60px 40px;
+      background: linear-gradient(180deg, rgba(230, 0, 0, 0.08) 0%, transparent 100%);
+      border-radius: 24px;
+      border: 1px solid rgba(230, 0, 0, 0.15);
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(230, 0, 0, 0.03) 0%, transparent 50%);
+      animation: pulse 8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-container img {
+      height: 70px;
+      filter: drop-shadow(0 4px 20px rgba(230, 0, 0, 0.3));
+    }
+
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff 0%, #e0e0e5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header .subtitle {
+      font-size: 1.2rem;
+      color: #a0a0b0;
+      font-weight: 400;
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #e60000 0%, #ff3333 100%);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 20px;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 20px rgba(230, 0, 0, 0.4);
+    }
+
+    /* Section Cards */
+    .section {
+      background: linear-gradient(180deg, #18181f 0%, #141418 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 40px;
+      margin-bottom: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-title .icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, rgba(230, 0, 0, 0.2) 0%, rgba(230, 0, 0, 0.05) 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      border: 1px solid rgba(230, 0, 0, 0.2);
+    }
+
+    /* Architecture Diagram */
+    .architecture {
+      background: linear-gradient(180deg, #1a1a22 0%, #14141a 100%);
+      border-radius: 16px;
+      padding: 50px 30px;
+      margin: 30px 0;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      overflow-x: auto;
+    }
+
+    .flow-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      min-width: fit-content;
+    }
+
+    .flow-box {
+      background: linear-gradient(180deg, #1e1e28 0%, #16161c 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      min-width: 140px;
+      max-width: 160px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .flow-box:hover {
+      transform: translateY(-4px);
+      border-color: rgba(230, 0, 0, 0.3);
+      box-shadow: 0 10px 40px rgba(230, 0, 0, 0.15);
+    }
+
+    .flow-box.highlight {
+      background: linear-gradient(180deg, rgba(230, 0, 0, 0.15) 0%, rgba(230, 0, 0, 0.05) 100%);
+      border-color: rgba(230, 0, 0, 0.3);
+    }
+
+    .flow-box .icon-large {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .flow-box h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .flow-box p {
+      font-size: 0.75rem;
+      color: #808090;
+      line-height: 1.4;
+    }
+
+    .arrow {
+      color: #e60000;
+      font-size: 1.8rem;
+      font-weight: bold;
+      opacity: 0.8;
+      flex-shrink: 0;
+    }
+
+    .arrow-down {
+      writing-mode: vertical-lr;
+      transform: rotate(90deg);
+    }
+
+    /* Return Flow */
+    .return-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px dashed rgba(230, 0, 0, 0.2);
+    }
+
+    .return-arrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(230, 0, 0, 0.08);
+      padding: 14px 28px;
+      border-radius: 50px;
+      border: 1px solid rgba(230, 0, 0, 0.15);
+    }
+
+    .return-arrow span {
+      color: #e60000;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* Benefits Grid */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 700px) {
+      .benefits-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .benefit-card {
+      background: linear-gradient(180deg, #1c1c24 0%, #141418 100%);
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .benefit-card:hover {
+      border-color: rgba(230, 0, 0, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .benefit-card.featured {
+      grid-column: span 2;
+      background: linear-gradient(135deg, rgba(230, 0, 0, 0.1) 0%, rgba(230, 0, 0, 0.02) 100%);
+      border-color: rgba(230, 0, 0, 0.2);
+    }
+
+    @media (max-width: 700px) {
+      .benefit-card.featured {
+        grid-column: span 1;
+      }
+    }
+
+    .benefit-card h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .benefit-card h4 .emoji {
+      font-size: 1.4rem;
+    }
+
+    .benefit-card p {
+      color: #909098;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .benefit-card ul {
+      color: #909098;
+      font-size: 0.9rem;
+      margin-top: 12px;
+      padding-left: 20px;
+    }
+
+    .benefit-card li {
+      margin-bottom: 6px;
+    }
+
+    /* Cost Badge */
+    .cost-highlight {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #00c853 0%, #00a844 100%);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-left: 10px;
+      box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+    }
+
+    /* Security Badge */
+    .security-badge {
+      background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+      box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    }
+
+    /* Tech Stack */
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .tech-tag {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: #c0c0cc;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.2s ease;
+    }
+
+    .tech-tag:hover {
+      background: rgba(230, 0, 0, 0.1);
+      border-color: rgba(230, 0, 0, 0.3);
+      color: #ffffff;
+    }
+
+    /* Process Steps */
+    .process-steps {
+      margin-top: 24px;
+    }
+
+    .step {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      border-left: 3px solid #e60000;
+      transition: all 0.2s ease;
+    }
+
+    .step:hover {
+      background: rgba(230, 0, 0, 0.05);
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #e60000 0%, #cc0000 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 15px rgba(230, 0, 0, 0.4);
+    }
+
+    .step-content h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .step-content p {
+      color: #909098;
+      font-size: 0.9rem;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px;
+      margin-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .footer p {
+      color: #606068;
+      font-size: 0.9rem;
+    }
+
+    .footer .team {
+      color: #e60000;
+      font-weight: 600;
+    }
+
+    /* Highlight Text */
+    .text-red {
+      color: #e60000;
+    }
+
+    .text-green {
+      color: #00c853;
+    }
+
+    /* Summary Stats */
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e60000 0%, #ff4444 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-value.green {
+      background: linear-gradient(135deg, #00c853 0%, #00e676 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #808090;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-container">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/VodafoneThree_logo_%282025%29.svg/1200px-VodafoneThree_logo_%282025%29.svg.png" alt="VodafoneThree">
+        <img src="https://media.licdn.com/dms/image/v2/D4D0BAQGfkiMG3IZsEA/company-logo_200_200/B4DZr9HhevJAAI-/0/1765183199563/amdocs_logo?e=2147483647&v=beta&t=PUyuK6QOHork-FMIcnxtz2ANgT0ZUJNv-CTYZOPNpXI" alt="Amdocs" style="height: 50px; border-radius: 8px;">
+      </div>
+      <h1>Automated Testing Dashboard</h1>
+      <p class="subtitle">Intelligent Email-Triggered Test Automation Platform</p>
+      <span class="badge">Executive Summary • January 2026</span>
+    </header>
+
+    <!-- Key Stats -->
+    <div class="section">
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-value green">$0</div>
+          <div class="stat-label">Infrastructure Cost</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">2-Layer</div>
+          <div class="stat-label">Security Model</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value green">100%</div>
+          <div class="stat-label">Cloud Native</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">24/7</div>
+          <div class="stat-label">Availability</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="icon">📋</span>
+        Project Overview
+      </h2>
+      <p style="color: #b0b0b8; font-size: 1.05rem; margin-bottom: 20px;">
+        The <strong style="color: #ffffff;">VodafoneThree Automated Testing Dashboard</strong> is a modern, cloud-native platform that enables any authorised person to trigger automated test flows via a simple, secure web interface. The system leverages email-based communication with <strong style="color: #e60000;">Amdocs Ginger</strong> to execute complex test scenarios and return results automatically.
+      </p>
+      <p style="color: #909098; font-size: 0.95rem;">
+        This solution eliminates manual test triggering, provides audit trails, and enables non-technical stakeholders to initiate testing workflows without direct system access.
+      </p>
+    </section>
+
+    <!-- Architecture Diagram -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="icon">🏗️</span>
+        System Architecture
+      </h2>
+      
+      <div class="architecture">
+        <div class="flow-container">
+          <div class="flow-box">
+            <span class="icon-large">👤</span>
+            <h4>User</h4>
+            <p>Authenticated team member</p>
+          </div>
+          
+          <span class="arrow">→</span>
+          
+          <div class="flow-box highlight">
+            <span class="icon-large">🖥️</span>
+            <h4>Dashboard</h4>
+            <p>React + Vercel (Free Tier)</p>
+          </div>
+          
+          <span class="arrow">→</span>
+          
+          <div class="flow-box">
+            <span class="icon-large">📧</span>
+            <h4>Email Service</h4>
+            <p>Resend API (Free Tier)</p>
+          </div>
+          
+          <span class="arrow">→</span>
+          
+          <div class="flow-box highlight">
+            <span class="icon-large">🤖</span>
+            <h4>Amdocs Ginger</h4>
+            <p>Test Automation Engine</p>
+          </div>
+        </div>
+        
+        <div class="return-flow">
+          <div class="return-arrow">
+            <span>←</span>
+            <span>Execution Results Sent Back to User's Email</span>
+            <span>←</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h4>User Sends Test Request</h4>
+            <p>User logs into the dashboard, selects environment, business flow, and optional customer ID, then clicks "Send Email".</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h4>Email Sent to Amdocs Ginger</h4>
+            <p>A structured email with subject line <code style="color: #e60000; background: rgba(230,0,0,0.1); padding: 2px 8px; border-radius: 4px;">SITE | ENV | FLOW | CustomerID</code> is sent to Ginger's monitored inbox.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h4>Ginger Executes the Flow</h4>
+            <p>Amdocs Ginger parses the email subject, identifies the test flow, and automatically executes the corresponding test automation script.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h4>Results Returned via Email</h4>
+            <p>Once execution completes, Ginger sends the test results and logs back to the user's email address for review.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zero Cost -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="icon">💰</span>
+        Zero Infrastructure Cost
+        <span class="cost-highlight">$0/month</span>
+      </h2>
+      
+      <div class="benefits-grid">
+        <div class="benefit-card featured">
+          <h4><span class="emoji">🎯</span> 100% Free Tier Architecture</h4>
+          <p>The entire infrastructure runs on free tiers of enterprise-grade cloud services, eliminating all recurring costs while maintaining production-quality performance and reliability.</p>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">🔥</span> Firebase Authentication</h4>
+          <p>Google's Firebase provides robust authentication completely free:</p>
+          <ul>
+            <li>Unlimited authentications</li>
+            <li>Enterprise-grade security</li>
+            <li>Email/Password auth flow</li>
+          </ul>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">▲</span> Vercel Hosting</h4>
+          <p>Serverless deployment platform:</p>
+          <ul>
+            <li>100GB bandwidth/month free</li>
+            <li>Serverless functions included</li>
+            <li>Global CDN distribution</li>
+          </ul>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">📬</span> Resend Email API</h4>
+          <p>Modern email delivery service:</p>
+          <ul>
+            <li>3,000 emails/month free tier</li>
+            <li>High deliverability rates</li>
+          </ul>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">🤖</span> Amdocs Ginger</h4>
+          <p>Existing automation platform:</p>
+          <ul>
+            <li>Already licensed by Amdocs</li>
+            <li>No additional costs</li>
+            <li>Email trigger capability built-in</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="icon">🔒</span>
+        Enterprise Security
+        <span class="cost-highlight security-badge">2-Layer Protection</span>
+      </h2>
+      
+      <div class="benefits-grid">
+        <div class="benefit-card featured">
+          <h4><span class="emoji">🛡️</span> Multi-Factor Authentication Flow</h4>
+          <p>Users must complete a 2-step verification process: (1) Email & Password authentication via Firebase, and (2) Email OTP verification sent via Resend. This ensures only authorized personnel can trigger test flows.</p>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">🔐</span> Firebase Auth Security</h4>
+          <ul>
+            <li>Industry-standard encryption</li>
+            <li>Brute force protection</li>
+            <li>Session management</li>
+            <li>Audit logging</li>
+          </ul>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">📱</span> OTP Verification</h4>
+          <ul>
+            <li>6-digit secure codes</li>
+            <li>60-second expiry timer</li>
+            <li>Single-use tokens</li>
+            <li>Rate limiting protection</li>
+          </ul>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">🌐</span> Network Security</h4>
+          <ul>
+            <li>HTTPS/TLS encryption</li>
+            <li>CORS protection</li>
+            <li>Serverless isolation</li>
+            <li>No exposed databases</li>
+          </ul>
+        </div>
+        
+        <div class="benefit-card">
+          <h4><span class="emoji">📝</span> Audit Trail</h4>
+          <ul>
+            <li>All requests logged</li>
+            <li>Email delivery tracking</li>
+            <li>User action timestamps</li>
+            <li>Traceability for compliance</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="icon">⚙️</span>
+        Technology Stack
+      </h2>
+      <p style="color: #909098; margin-bottom: 16px;">Modern, maintainable, and industry-standard technologies:</p>
+      <div class="tech-stack">
+        <span class="tech-tag">React 18</span>
+        <span class="tech-tag">Material UI</span>
+        <span class="tech-tag">Vite</span>
+        <span class="tech-tag">Firebase Auth</span>
+        <span class="tech-tag">Vercel Serverless</span>
+        <span class="tech-tag">Resend API</span>
+        <span class="tech-tag">Amdocs Ginger</span>
+        <span class="tech-tag">Node.js</span>
+        <span class="tech-tag">HTML5 Email</span>
+      </div>
+    </section>
+
+    <!-- Business Flows Supported -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="icon">🔄</span>
+        Supported Business Flows
+      </h2>
+      <div class="benefits-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="benefit-card">
+          <h4 style="font-size: 0.95rem;"><span class="emoji">🏠</span> Churchill B2C</h4>
+          <p style="font-size: 0.85rem;">Seamless Dashboard Migration for B2C customers</p>
+        </div>
+        <div class="benefit-card">
+          <h4 style="font-size: 0.95rem;"><span class="emoji">🏢</span> Churchill B2B</h4>
+          <p style="font-size: 0.85rem;">Seamless Dashboard Migration for B2B customers</p>
+        </div>
+        <div class="benefit-card">
+          <h4 style="font-size: 0.95rem;"><span class="emoji">📱</span> B2C Postpaid</h4>
+          <p style="font-size: 0.85rem;">Create new B2C customer with Postpaid SIMO</p>
+        </div>
+        <div class="benefit-card">
+          <h4 style="font-size: 0.95rem;"><span class="emoji">🏛️</span> B2B Customer</h4>
+          <p style="font-size: 0.85rem;">Create new B2B customer account</p>
+        </div>
+        <div class="benefit-card">
+          <h4 style="font-size: 0.95rem;"><span class="emoji">➕</span> Extensible</h4>
+          <p style="font-size: 0.85rem;">Easy to add new flows as needed</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Benefits Summary -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="icon">✨</span>
+        Key Benefits Summary
+      </h2>
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <h4><span class="emoji">💵</span> Cost Efficiency</h4>
+          <p>Zero infrastructure costs using free tiers of Firebase, Vercel, and Resend. No servers to maintain or scale.</p>
+        </div>
+        <div class="benefit-card">
+          <h4><span class="emoji">🔒</span> Enterprise Security</h4>
+          <p>Multi-layer authentication with Firebase + Email OTP ensures only authorized access.</p>
+        </div>
+        <div class="benefit-card">
+          <h4><span class="emoji">⚡</span> Instant Deployment</h4>
+          <p>Serverless architecture enables instant global deployment with zero DevOps overhead.</p>
+        </div>
+        <div class="benefit-card">
+          <h4><span class="emoji">📊</span> Full Traceability</h4>
+          <p>Every test request is logged with user, timestamp, and execution results returned via email.</p>
+        </div>
+        <div class="benefit-card">
+          <h4><span class="emoji">🎨</span> Modern UX</h4>
+          <p>Clean, intuitive interface following Vodafone brand guidelines. Mobile-responsive design.</p>
+        </div>
+        <div class="benefit-card">
+          <h4><span class="emoji">🔗</span> Seamless Integration</h4>
+          <p>Leverages existing Amdocs Ginger infrastructure for test execution without additional licensing.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Developed by the <span class="team">VodafoneThree × Amdocs Testing Team</span></p>
+      <p style="margin-top: 8px; font-size: 0.8rem;">© 2026 VodafoneThree Dashboard • All Rights Reserved</p>
+    </footer>
+  </div>
+</body>
+</html>
+

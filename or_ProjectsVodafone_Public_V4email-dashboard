@@ -1,0 +1,30 @@
+[33m8fb6b74[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Remove mobile OTP step - simplify to 2-step authentication (Firebase + Email OTP)
+[33mc594128[m[33m ([m[1;33mtag: [m[1;33mv1.0-3step-auth[m[33m)[m Remove B2C Prepaid SIMO business flow
+[33me348229[m Replace EmailJS with Resend for notification emails
+[33m5f69576[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m)[m Remove GitHub Pages workflow - moved to Vercel
+[33mdbfe193[m Add resend dependency for Vercel functions
+[33m698e1ad[m Fix vercel.json for proper Vite build
+[33m1acd829[m Trigger Vercel deployment
+[33m5b23808[m Trigger Vercel rebuild from main
+[33m1433d4f[m Fix Vite base path for Vercel deployment
+[33m8a5acf1[m Add Vercel API functions for email OTP with Resend integration
+[33m7009086[m[33m ([m[1;33mtag: [m[1;33mv1.0-pre-firebase[m[33m)[m Update config for new repository dashboard_vofafone
+[33mbc21d4d[m[33m ([m[1;33mtag: [m[1;33mpre-firebase-backup[m[33m)[m Update business flows: Add B2C/B2B Churchill options, remove unused flows
+[33mf486054[m Rollback inactivity timer logout functionality
+[33mce15b2d[m Add automatic logout after 15 minutes of inactivity
+[33m081cd0e[m Rename business flow code to Churchill_Seamless_Migration while keeping email subject unchanged
+[33madae2a7[m Add hardcoded user credentials: TestUser/Testing@123
+[33mcdc58f8[m Add username and password fields before OTP on login page
+[33m7435c6a[m Add login page with OTP validation before dashboard
+[33me462b70[m Set UAT10 as default environment
+[33m30d6637[m Add Churchill_SEAMLESS_Dashboard as default business flow
+[33mc2da270[m Add UAT10 to Environment dropdown
+[33m0821d35[m Rename Customer ID to Customer
+[33mdc6e753[m Add optional Customer ID field to subject line
+[33mf707ce1[m Add CC email so sender receives a copy
+[33md14eb26[m Remove space between two footers
+[33m214fcef[m Remove footer 'You will get email response once flow is completed.'
+[33m0526695[m Add footer 'You will get email response once flow is triggered/completed.'
+[33m7bbc381[m Further reduce spacing between footer texts
+[33m1ee0068[m Reduce spacing between footer texts
+[33m21dafdc[m Add footer 'Â© VodafoneThree Amdocs Testing Team'
