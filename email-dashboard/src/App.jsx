@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   ThemeProvider,
   createTheme,
@@ -142,7 +142,7 @@ function App() {
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     const userEmail = localStorage.getItem('userEmail');
     
     // Log logout event
@@ -153,7 +153,62 @@ function App() {
     localStorage.removeItem('mobileNumber');
     localStorage.removeItem('loginTime');
     setIsAuthenticated(false);
-  };
+  }, []);
+
+  // Inactivity timeout - logout after 15 minutes of inactivity
+  const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
+  const inactivityTimerRef = useRef(null);
+
+  const resetInactivityTimer = useCallback(() => {
+    // Clear existing timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Set new timer - only if authenticated
+    if (isAuthenticated) {
+      inactivityTimerRef.current = setTimeout(() => {
+        setSnackbar({
+          open: true,
+          message: 'You have been logged out due to 15 minutes of inactivity',
+          severity: 'warning',
+        });
+        handleLogout();
+      }, INACTIVITY_TIMEOUT);
+    }
+  }, [isAuthenticated, handleLogout]);
+
+  // Set up inactivity listeners when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // Clear timer if not authenticated
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      return;
+    }
+
+    // Activity events to track
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+
+    // Add event listeners
+    activityEvents.forEach(event => {
+      document.addEventListener(event, resetInactivityTimer);
+    });
+
+    // Start the initial timer
+    resetInactivityTimer();
+
+    // Cleanup
+    return () => {
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, resetInactivityTimer);
+      });
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [isAuthenticated, resetInactivityTimer]);
 
   // Fixed recipient emails
   const RECIPIENT_EMAILS = 'djain@amdocs.com,rafid@amdocs.com';
