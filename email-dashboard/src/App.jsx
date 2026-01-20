@@ -27,7 +27,7 @@ import { ref, get, remove, onValue } from 'firebase/database';
 import { db } from './firebase';
 import Login from './Login';
 import AdminStatsPanel from './AdminStatsPanel';
-import { logAuditEvent, AUDIT_ACTIONS } from './auditService';
+import { logAuditEvent, AUDIT_ACTIONS, getEmailCountByUser } from './auditService';
 
 // Admin users who can see usage stats
 const ADMIN_EMAILS = [
@@ -125,6 +125,7 @@ function App() {
   });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [emailSentCount, setEmailSentCount] = useState(0);
 
   // Check authentication on mount and verify session
   useEffect(() => {
@@ -133,6 +134,26 @@ function App() {
       setIsAuthenticated(true);
     }
   }, []);
+
+  // Fetch email sent count for logged-in user
+  const fetchEmailCount = useCallback(async () => {
+    const userEmail = localStorage.getItem('userEmail');
+    if (!userEmail) return;
+    
+    try {
+      const counts = await getEmailCountByUser();
+      setEmailSentCount(counts[userEmail] || 0);
+    } catch (error) {
+      console.error('Error fetching email count:', error);
+    }
+  }, []);
+
+  // Fetch email count when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchEmailCount();
+    }
+  }, [isAuthenticated, fetchEmailCount]);
 
   // Verify session to prevent concurrent logins
   useEffect(() => {
@@ -322,6 +343,9 @@ function App() {
           recipients: RECIPIENT_EMAILS,
         });
         
+        // Increment email sent counter
+        setEmailSentCount(prev => prev + 1);
+        
         setSnackbar({
           open: true,
           message: 'Email sent successfully!',
@@ -389,6 +413,19 @@ function App() {
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
           {/* Header with Logo and Logout */}
           <Box sx={{ textAlign: 'center', mb: 4, position: 'relative' }}>
+            {/* Email Sent Counter - Top Left */}
+            <Box sx={{ position: 'absolute', top: 0, left: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <EmailIcon sx={{ color: '#e60000', fontSize: 20 }} />
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 500,
+                }}
+              >
+                Emails Sent: <span style={{ color: '#e60000', fontWeight: 700 }}>{emailSentCount}</span>
+              </Typography>
+            </Box>
             {/* Logout Button */}
             <Box sx={{ position: 'absolute', top: 0, right: 0 }}>
               <IconButton
