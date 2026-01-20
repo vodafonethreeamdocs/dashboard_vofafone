@@ -26,6 +26,11 @@ import { logAuditEvent, AUDIT_ACTIONS } from './auditService';
 // Vercel API base URL (will be set to deployed URL in production)
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
+// Users exempt from OTP MFA (admin bypass)
+const MFA_EXEMPT_USERS = [
+  'djain@amdocs.com',
+];
+
 // Send Email OTP via Vercel API (Resend)
 const sendEmailOTP = async (email) => {
   try {
@@ -108,6 +113,46 @@ function Login({ onLoginSuccess }) {
     try {
       // Authenticate with Firebase
       await signInWithEmailAndPassword(auth, email, password);
+      
+      // Check if user is exempt from MFA
+      const isMfaExempt = MFA_EXEMPT_USERS.includes(email.toLowerCase());
+      
+      if (isMfaExempt) {
+        // Bypass OTP - complete login directly
+        const sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Store session in Firebase to prevent concurrent logins
+        const sanitizedEmail = email.replace(/[.#$[\]]/g, '_');
+        const sessionRef = ref(db, `activeSessions/${sanitizedEmail}`);
+        await set(sessionRef, {
+          sessionId: sessionId,
+          loginTime: Date.now(),
+          userAgent: navigator.userAgent
+        });
+        
+        // Store authentication in localStorage
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('loginTime', Date.now().toString());
+        localStorage.setItem('sessionId', sessionId);
+        
+        // Log successful login (MFA bypassed)
+        logAuditEvent(email, AUDIT_ACTIONS.LOGIN_SUCCESS, { 
+          method: 'mfa-exempt',
+          steps: ['firebase']
+        });
+        
+        setSnackbar({
+          open: true,
+          message: 'Login successful! Welcome to VodafoneThree Dashboard',
+          severity: 'success',
+        });
+        
+        setTimeout(() => {
+          onLoginSuccess();
+        }, 500);
+        return;
+      }
       
       // Send Email OTP via Vercel/Resend
       const result = await sendEmailOTP(email);
