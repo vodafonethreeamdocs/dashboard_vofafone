@@ -118,7 +118,6 @@ const darkTheme = createTheme({
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
     environment: 'UAT10',
     customerId: '',
     businessFlow: BUSINESS_FLOWS[0].code,
@@ -324,8 +323,8 @@ function App() {
         body: JSON.stringify({
           to_email: RECIPIENT_EMAILS,
           from_name: 'Vodafone_Dashboard',
-          from_email: formData.email,
-          cc_email: formData.email,  // CC the sender so they get a copy
+          from_email: currentUserEmail,
+          cc_email: currentUserEmail,  // CC the sender so they get a copy
           subject: generatedSubject,
           message: '(No message)',
         }),
@@ -335,7 +334,7 @@ function App() {
 
       if (data.success) {
         // Log successful email send
-        logAuditEvent(formData.email, AUDIT_ACTIONS.SEND_EMAIL, {
+        logAuditEvent(currentUserEmail, AUDIT_ACTIONS.SEND_EMAIL, {
           environment: formData.environment,
           businessFlow: formData.businessFlow,
           customerId: formData.customerId || null,
@@ -351,7 +350,7 @@ function App() {
           message: 'Email sent successfully!',
           severity: 'success',
         });
-        setFormData((prev) => ({ ...prev, email: '', customerId: '' }));
+        setFormData((prev) => ({ ...prev, customerId: '' }));
       } else {
         throw new Error(data.error || 'Failed to send email');
       }
@@ -359,7 +358,7 @@ function App() {
       console.error('Send Email Error:', error);
       
       // Log failed email send
-      logAuditEvent(formData.email, AUDIT_ACTIONS.SEND_EMAIL_FAILED, {
+      logAuditEvent(currentUserEmail, AUDIT_ACTIONS.SEND_EMAIL_FAILED, {
         environment: formData.environment,
         businessFlow: formData.businessFlow,
         error: error.message,
@@ -498,20 +497,19 @@ function App() {
                   </Typography>
                 </Box>
 
-                {/* Your Email ID */}
-                <TextField
-                  fullWidth
-                  label="Your Email ID"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="your.email@domain.com"
-                  InputProps={{
-                    startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                {/* Your Email ID - Auto-populated from logged-in user */}
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: 'rgba(230, 0, 0, 0.1)',
+                    borderRadius: 2,
+                    border: '1px solid rgba(230, 0, 0, 0.2)',
                   }}
-                />
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    <strong style={{ color: '#e60000' }}>Your Email ID:</strong> {currentUserEmail}
+                  </Typography>
+                </Box>
 
                 {/* Environment & Customer ID Row */}
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
