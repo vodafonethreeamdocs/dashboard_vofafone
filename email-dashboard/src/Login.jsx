@@ -29,6 +29,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 // Users exempt from OTP MFA (admin bypass)
 const MFA_EXEMPT_USERS = [
   'djain@amdocs.com',
+  'rafid@amdocs.com',
 ];
 
 // Send Email OTP via Vercel API (Resend)
