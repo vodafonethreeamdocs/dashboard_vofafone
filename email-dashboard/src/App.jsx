@@ -23,6 +23,8 @@ import {
   Email as EmailIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
+import { ref, get, remove, onValue } from 'firebase/database';
+import { db } from './firebase';
 import Login from './Login';
 import AdminStatsPanel from './AdminStatsPanel';
 import { logAuditEvent, AUDIT_ACTIONS } from './auditService';
@@ -124,13 +126,56 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Check authentication on mount
+  // Check authentication on mount and verify session
   useEffect(() => {
     const authStatus = localStorage.getItem('isAuthenticated');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
     }
   }, []);
+
+  // Verify session to prevent concurrent logins
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const userEmail = localStorage.getItem('userEmail');
+    const localSessionId = localStorage.getItem('sessionId');
+    
+    if (!userEmail || !localSessionId) return;
+
+    const sanitizedEmail = userEmail.replace(/[.#$[\]]/g, '_');
+    const sessionRef = ref(db, `activeSessions/${sanitizedEmail}`);
+
+    // Listen for session changes in real-time
+    const unsubscribe = onValue(sessionRef, (snapshot) => {
+      const data = snapshot.val();
+      
+      if (!data || data.sessionId !== localSessionId) {
+        // Session mismatch - user logged in from another device
+        setSnackbar({
+          open: true,
+          message: 'You have been logged out because your account was accessed from another device',
+          severity: 'warning',
+        });
+        
+        // Log the forced logout
+        logAuditEvent(userEmail, AUDIT_ACTIONS.LOGOUT, {
+          reason: 'concurrent_login_detected',
+          forcedLogout: true
+        });
+        
+        // Clear local storage and logout
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('mobileNumber');
+        localStorage.removeItem('loginTime');
+        localStorage.removeItem('sessionId');
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isAuthenticated]);
 
   // Check if current user is admin
   const currentUserEmail = localStorage.getItem('userEmail') || '';
@@ -142,8 +187,19 @@ function App() {
   };
 
   // Handle logout
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     const userEmail = localStorage.getItem('userEmail');
+    
+    // Clear session from Firebase
+    if (userEmail) {
+      const sanitizedEmail = userEmail.replace(/[.#$[\]]/g, '_');
+      const sessionRef = ref(db, `activeSessions/${sanitizedEmail}`);
+      try {
+        await remove(sessionRef);
+      } catch (error) {
+        console.error('Error clearing session:', error);
+      }
+    }
     
     // Log logout event
     logAuditEvent(userEmail, AUDIT_ACTIONS.LOGOUT, {});
@@ -152,6 +208,7 @@ function App() {
     localStorage.removeItem('userEmail');
     localStorage.removeItem('mobileNumber');
     localStorage.removeItem('loginTime');
+    localStorage.removeItem('sessionId');
     setIsAuthenticated(false);
   }, []);
 

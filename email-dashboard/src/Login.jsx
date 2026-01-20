@@ -19,7 +19,8 @@ import {
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebase';
+import { ref, set } from 'firebase/database';
+import { auth, db } from './firebase';
 import { logAuditEvent, AUDIT_ACTIONS } from './auditService';
 
 // Vercel API base URL (will be set to deployed URL in production)
@@ -180,10 +181,23 @@ function Login({ onLoginSuccess }) {
     try {
       const result = await validateEmailOTP(email, emailOtp, otpToken);
       if (result.valid) {
+        // Generate unique session ID for concurrent login prevention
+        const sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Store session in Firebase to prevent concurrent logins
+        const sanitizedEmail = email.replace(/[.#$[\]]/g, '_');
+        const sessionRef = ref(db, `activeSessions/${sanitizedEmail}`);
+        await set(sessionRef, {
+          sessionId: sessionId,
+          loginTime: Date.now(),
+          userAgent: navigator.userAgent
+        });
+        
         // Store authentication in localStorage - Complete login
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('userEmail', email);
         localStorage.setItem('loginTime', Date.now().toString());
+        localStorage.setItem('sessionId', sessionId);
         
         // Log successful login
         logAuditEvent(email, AUDIT_ACTIONS.LOGIN_SUCCESS, { 
