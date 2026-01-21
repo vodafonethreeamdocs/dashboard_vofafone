@@ -41,7 +41,7 @@ const ADMIN_EMAILS = [
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Environment options
-const ENVIRONMENTS = ['UAT10', 'UAT4', 'UAT3', 'UAT2', 'UAT1'];
+const ENVIRONMENTS = ['UAT10', 'UAT8', 'UAT7', 'UAT2', 'UAT1'];
 
 // Business Flow options with their codes
 const BUSINESS_FLOWS = [
