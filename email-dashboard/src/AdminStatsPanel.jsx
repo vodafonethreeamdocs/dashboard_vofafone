@@ -10,6 +10,11 @@ import {
   IconButton,
   Collapse,
   Divider,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -19,8 +24,17 @@ import {
   Login as LoginIcon,
   Email as EmailIcon,
   Error as ErrorIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { getAllAuditLogs, getEmailCountByUser, AUDIT_ACTIONS } from './auditService';
+import { 
+  getAllAuditLogs, 
+  getEmailCountByUser, 
+  AUDIT_ACTIONS,
+  getDefaultEmailLimit,
+  setDefaultEmailLimit,
+  getAllUserLimits,
+  setUserEmailLimit
+} from './auditService';
 
 function AdminStatsPanel() {
   const [logs, setLogs] = useState([]);
@@ -34,16 +48,26 @@ function AdminStatsPanel() {
     todayLogins: 0,
     todayEmails: 0,
   });
+  // Email limits state
+  const [defaultLimit, setDefaultLimitState] = useState(20);
+  const [userLimits, setUserLimits] = useState({});
+  const [limitDialogOpen, setLimitDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState('');
+  const [newLimit, setNewLimit] = useState(20);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [logsData, countsData] = await Promise.all([
+      const [logsData, countsData, defaultLimitData, userLimitsData] = await Promise.all([
         getAllAuditLogs(200),
         getEmailCountByUser(),
+        getDefaultEmailLimit(),
+        getAllUserLimits(),
       ]);
       setLogs(logsData);
       setEmailCounts(countsData);
+      setDefaultLimitState(defaultLimitData);
+      setUserLimits(userLimitsData);
 
       // Calculate stats
       const today = new Date().toISOString().split('T')[0];
@@ -60,6 +84,23 @@ function AdminStatsPanel() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handlers for limit management
+  const handleOpenLimitDialog = (email = '', currentLimit = defaultLimit) => {
+    setSelectedUser(email);
+    setNewLimit(currentLimit);
+    setLimitDialogOpen(true);
+  };
+
+  const handleSaveLimit = async () => {
+    if (selectedUser) {
+      await setUserEmailLimit(selectedUser, newLimit);
+    } else {
+      await setDefaultEmailLimit(newLimit);
+    }
+    setLimitDialogOpen(false);
+    fetchData();
   };
 
   useEffect(() => {
@@ -209,29 +250,52 @@ function AdminStatsPanel() {
               </Box>
             </Box>
 
-            {/* Emails Per User */}
-            {Object.keys(emailCounts).length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, color: '#a0a0a0' }}>
-                  📧 Emails Per User:
+            {/* Email Limits Management */}
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ color: '#a0a0a0' }}>
+                  📧 Email Usage & Limits:
                 </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {Object.entries(emailCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([email, count]) => (
-                    <Chip
-                      key={email}
-                      label={`${email.split('@')[0]}: ${count}`}
-                      size="small"
-                      sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                        '& .MuiChip-label': { fontSize: '0.75rem' },
-                      }}
-                    />
-                  ))}
-                </Box>
+                <Button
+                  size="small"
+                  startIcon={<SettingsIcon />}
+                  onClick={() => handleOpenLimitDialog('', defaultLimit)}
+                  sx={{ color: '#e60000', fontSize: '0.75rem' }}
+                >
+                  Default Limit: {defaultLimit}
+                </Button>
               </Box>
-            )}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {Object.entries(emailCounts)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([email, count]) => {
+                    const userLimit = userLimits[email] || defaultLimit;
+                    const isNearLimit = count >= userLimit * 0.8;
+                    const isAtLimit = count >= userLimit;
+                    return (
+                      <Chip
+                        key={email}
+                        label={`${email.split('@')[0]}: ${count}/${userLimit}`}
+                        size="small"
+                        onClick={() => handleOpenLimitDialog(email, userLimit)}
+                        sx={{
+                          cursor: 'pointer',
+                          backgroundColor: isAtLimit 
+                            ? 'rgba(244, 67, 54, 0.2)' 
+                            : isNearLimit 
+                            ? 'rgba(255, 152, 0, 0.2)' 
+                            : 'rgba(255, 255, 255, 0.08)',
+                          color: isAtLimit ? '#f44336' : isNearLimit ? '#ff9800' : '#fff',
+                          '& .MuiChip-label': { fontSize: '0.75rem' },
+                          '&:hover': {
+                            backgroundColor: 'rgba(230, 0, 0, 0.3)',
+                          },
+                        }}
+                      />
+                    );
+                  })}
+              </Box>
+            </Box>
 
             <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.1)' }} />
 
@@ -306,6 +370,62 @@ function AdminStatsPanel() {
           </>
         )}
       </Collapse>
+
+      {/* Email Limit Edit Dialog */}
+      <Dialog 
+        open={limitDialogOpen} 
+        onClose={() => setLimitDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#1a1a21',
+            border: '1px solid rgba(230, 0, 0, 0.2)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#fff' }}>
+          {selectedUser ? `Set Limit for ${selectedUser.split('@')[0]}` : 'Set Default Email Limit'}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Email Limit"
+            type="number"
+            fullWidth
+            value={newLimit}
+            onChange={(e) => setNewLimit(parseInt(e.target.value) || 0)}
+            inputProps={{ min: 0 }}
+            sx={{ 
+              mt: 2,
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                },
+              },
+            }}
+          />
+          {selectedUser && (
+            <Typography variant="caption" sx={{ color: '#808080', mt: 1, display: 'block' }}>
+              User: {selectedUser}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={() => setLimitDialogOpen(false)} 
+            sx={{ color: '#a0a0a0' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSaveLimit} 
+            variant="contained" 
+            sx={{ backgroundColor: '#e60000' }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

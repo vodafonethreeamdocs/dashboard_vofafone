@@ -27,7 +27,7 @@ import { ref, get, remove, onValue } from 'firebase/database';
 import { db } from './firebase';
 import Login from './Login';
 import AdminStatsPanel from './AdminStatsPanel';
-import { logAuditEvent, AUDIT_ACTIONS, getEmailCountByUser } from './auditService';
+import { logAuditEvent, AUDIT_ACTIONS, getEmailCountByUser, getEmailLimit } from './auditService';
 
 // Admin users who can see usage stats
 const ADMIN_EMAILS = [
@@ -125,6 +125,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [emailSentCount, setEmailSentCount] = useState(0);
+  const [emailLimit, setEmailLimit] = useState(20);
 
   // Check authentication on mount and verify session
   useEffect(() => {
@@ -134,14 +135,18 @@ function App() {
     }
   }, []);
 
-  // Fetch email sent count for logged-in user
+  // Fetch email sent count and limit for logged-in user
   const fetchEmailCount = useCallback(async () => {
     const userEmail = localStorage.getItem('userEmail');
     if (!userEmail) return;
     
     try {
-      const counts = await getEmailCountByUser();
+      const [counts, limit] = await Promise.all([
+        getEmailCountByUser(),
+        getEmailLimit(userEmail)
+      ]);
       setEmailSentCount(counts[userEmail] || 0);
+      setEmailLimit(limit);
     } catch (error) {
       console.error('Error fetching email count:', error);
     }
@@ -311,8 +316,22 @@ function App() {
     }));
   };
 
+  // Check if user has reached email limit
+  const hasReachedLimit = emailSentCount >= emailLimit;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check email limit before sending
+    if (hasReachedLimit) {
+      setSnackbar({
+        open: true,
+        message: `You have reached your email limit of ${emailLimit}. Please contact an admin to increase your limit.`,
+        severity: 'error',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -414,7 +433,7 @@ function App() {
           <Box sx={{ textAlign: 'center', mb: 4, position: 'relative' }}>
             {/* Email Sent Counter - Top Left */}
             <Box sx={{ position: 'absolute', top: 0, left: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <EmailIcon sx={{ color: '#e60000', fontSize: 20 }} />
+              <EmailIcon sx={{ color: hasReachedLimit ? '#ff9800' : '#e60000', fontSize: 20 }} />
               <Typography
                 variant="body2"
                 sx={{
@@ -422,7 +441,9 @@ function App() {
                   fontWeight: 500,
                 }}
               >
-                Emails Sent: <span style={{ color: '#e60000', fontWeight: 700 }}>{emailSentCount}</span>
+                Emails: <span style={{ color: hasReachedLimit ? '#ff9800' : '#e60000', fontWeight: 700 }}>
+                  {emailSentCount} / {emailLimit}
+                </span>
               </Typography>
             </Box>
             {/* Logout Button */}
@@ -575,20 +596,27 @@ function App() {
                   variant="contained"
                   size="large"
                   fullWidth
-                  disabled={loading}
+                  disabled={loading || hasReachedLimit}
                   startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
                   sx={{
                     py: 1.5,
                     fontSize: '1.1rem',
-                    boxShadow: '0 8px 24px rgba(230, 0, 0, 0.3)',
+                    boxShadow: hasReachedLimit ? 'none' : '0 8px 24px rgba(230, 0, 0, 0.3)',
                     '&:hover': {
-                      boxShadow: '0 12px 32px rgba(230, 0, 0, 0.4)',
-                      transform: 'translateY(-2px)',
+                      boxShadow: hasReachedLimit ? 'none' : '0 12px 32px rgba(230, 0, 0, 0.4)',
+                      transform: hasReachedLimit ? 'none' : 'translateY(-2px)',
                     },
                     transition: 'all 0.2s ease',
+                    ...(hasReachedLimit && {
+                      backgroundColor: '#ff9800',
+                      '&.Mui-disabled': {
+                        backgroundColor: 'rgba(255, 152, 0, 0.3)',
+                        color: 'rgba(255, 255, 255, 0.5)',
+                      },
+                    }),
                   }}
                 >
-                  {loading ? 'Sending...' : 'Send Email'}
+                  {loading ? 'Sending...' : hasReachedLimit ? 'Email Limit Reached' : 'Send Email'}
                 </Button>
               </Box>
             </form>

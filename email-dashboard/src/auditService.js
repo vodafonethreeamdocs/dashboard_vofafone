@@ -5,8 +5,13 @@ import { db } from './firebase';
 import { 
   ref, 
   push, 
-  get
+  get,
+  set
 } from 'firebase/database';
+
+// Path for email limits
+const EMAIL_LIMITS_PATH = 'email_limits';
+const DEFAULT_EMAIL_LIMIT = 20;
 
 // Path for audit logs in Realtime Database
 const AUDIT_PATH = 'audit_logs';
@@ -175,5 +180,112 @@ export const getAuditLogsByDateRange = async (startDate, endDate) => {
   } catch (error) {
     console.error('Error fetching audit logs by date:', error);
     return [];
+  }
+};
+
+// ============================================
+// Email Limit Management Functions
+// ============================================
+
+/**
+ * Get email limit for a specific user (or default)
+ * @param {string} userEmail - Email of the user
+ * @returns {Promise<number>} - Email limit for the user
+ */
+export const getEmailLimit = async (userEmail) => {
+  try {
+    const sanitizedEmail = userEmail.replace(/[.#$[\]]/g, '_');
+    
+    // Check for user-specific limit first
+    const userLimitRef = ref(db, `${EMAIL_LIMITS_PATH}/users/${sanitizedEmail}`);
+    const userSnapshot = await get(userLimitRef);
+    
+    if (userSnapshot.exists()) {
+      return userSnapshot.val();
+    }
+    
+    // Fall back to global default
+    const defaultRef = ref(db, `${EMAIL_LIMITS_PATH}/default`);
+    const defaultSnapshot = await get(defaultRef);
+    
+    return defaultSnapshot.exists() ? defaultSnapshot.val() : DEFAULT_EMAIL_LIMIT;
+  } catch (error) {
+    console.error('Error getting email limit:', error);
+    return DEFAULT_EMAIL_LIMIT;
+  }
+};
+
+/**
+ * Set email limit for a specific user (admin only)
+ * @param {string} userEmail - Email of the user to set limit for
+ * @param {number} limit - New email limit
+ * @returns {Promise<boolean>} - Success status
+ */
+export const setUserEmailLimit = async (userEmail, limit) => {
+  try {
+    const sanitizedEmail = userEmail.replace(/[.#$[\]]/g, '_');
+    const userLimitRef = ref(db, `${EMAIL_LIMITS_PATH}/users/${sanitizedEmail}`);
+    await set(userLimitRef, limit);
+    return true;
+  } catch (error) {
+    console.error('Error setting user email limit:', error);
+    return false;
+  }
+};
+
+/**
+ * Set the default email limit (admin only)
+ * @param {number} limit - New default email limit
+ * @returns {Promise<boolean>} - Success status
+ */
+export const setDefaultEmailLimit = async (limit) => {
+  try {
+    const defaultRef = ref(db, `${EMAIL_LIMITS_PATH}/default`);
+    await set(defaultRef, limit);
+    return true;
+  } catch (error) {
+    console.error('Error setting default email limit:', error);
+    return false;
+  }
+};
+
+/**
+ * Get all user email limits (for admin panel)
+ * @returns {Promise<Object>} - Object with all user limits
+ */
+export const getAllUserLimits = async () => {
+  try {
+    const limitsRef = ref(db, `${EMAIL_LIMITS_PATH}/users`);
+    const snapshot = await get(limitsRef);
+    
+    if (snapshot.exists()) {
+      // Convert sanitized emails back to normal format
+      const limits = {};
+      const data = snapshot.val();
+      Object.keys(data).forEach(key => {
+        const email = key.replace(/_/g, '.');
+        limits[email] = data[key];
+      });
+      return limits;
+    }
+    return {};
+  } catch (error) {
+    console.error('Error getting all user limits:', error);
+    return {};
+  }
+};
+
+/**
+ * Get the default email limit setting
+ * @returns {Promise<number>} - Default email limit
+ */
+export const getDefaultEmailLimit = async () => {
+  try {
+    const defaultRef = ref(db, `${EMAIL_LIMITS_PATH}/default`);
+    const snapshot = await get(defaultRef);
+    return snapshot.exists() ? snapshot.val() : DEFAULT_EMAIL_LIMIT;
+  } catch (error) {
+    console.error('Error getting default email limit:', error);
+    return DEFAULT_EMAIL_LIMIT;
   }
 };
